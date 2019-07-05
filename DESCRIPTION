@@ -28,4 +28,5 @@ Suggests:
     knitr,
     rmarkdown
 Remotes: vladpetyuk/PlexedPiperTestData
+biocViews:
 VignetteBuilder: knitr
