@@ -1,3 +1,9 @@
 inst/doc
 doc
 Meta
+.Rproj.user
+.Rhistory
+.RData
+.Ruserdata
+.Rbuildignore
+.DS_Store
