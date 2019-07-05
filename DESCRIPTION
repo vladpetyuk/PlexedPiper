@@ -27,4 +27,5 @@ Imports:
 Suggests: 
     knitr,
     rmarkdown
+Remotes: vladpetyuk/PlexedPiperTestData
 VignetteBuilder: knitr
