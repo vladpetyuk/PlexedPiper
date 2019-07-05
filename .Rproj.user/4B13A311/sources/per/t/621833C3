@@ -1,0 +1,22 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1562042798500.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "3979474180",
+    "id" : "621833C3",
+    "lastKnownWriteTime" : 1562094787,
+    "last_content_update" : 1562094787573,
+    "path" : "~/OneDrive/TMT_pipeline/PlexedPiper/R/make_quant_data.R",
+    "project_path" : "R/make_quant_data.R",
+    "properties" : {
+        "cursorPosition" : "155,41",
+        "scrollLine" : "133"
+    },
+    "relative_order" : 3,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}

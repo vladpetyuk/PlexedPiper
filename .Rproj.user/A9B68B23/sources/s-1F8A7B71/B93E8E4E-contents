@@ -1,0 +1,45 @@
+
+library(PlexedPiper)
+
+path_to_MASIC_results <- "/Users/d3m629/OneDrive/TMT_pipeline/study/masic_output_short/"
+masic_data <- read_masic_data(path_to_MASIC_results, extra_metrics=TRUE)
+masic_data <- filter_masic_data(masic_data)
+
+path_to_MSGF_results <- "/Users/d3m629/OneDrive/TMT_pipeline/study/msgf_output_short2/"
+msnid <- read_msgf_data(path_to_MSGF_results)
+show(msnid)
+msnid <- MSnID::correct_peak_selection(msnid)
+msnid <- filter_msgf_data_peptide_level(msnid)
+show(msnid)
+msnid <- remap_accessions_refseq_to_gene(msnid, "Rattus norvegicus")
+show(msnid)
+path_to_FASTA <- "/Users/d3m629/OneDrive/TMT_pipeline/study/fasta/Rattus_norvegicus_NCBI_RefSeq_2018-04-10.fasta"
+path_to_new_FASTA <- remap_accessions_refseq_to_gene_fasta(path_to_FASTA,"Rattus norvegicus")
+msnid <- compute_num_peptides_per_1000aa(msnid, path_to_new_FASTA)
+msnid <- filter_msgf_data_protein_level(msnid)
+show(msnid)
+
+msnid <- apply_filter(msnid, "!isDecoy")
+show(msnid)
+
+save.image("gene.RData")
+
+
+load("gene.RData")
+remotes::install_github("vladpetyuk/MSnID")
+library(MSnID)
+msnid <- infer_parsimonious_accessions(msnid, unique_only=T)
+
+library(tidyverse)
+fractions <- read_tsv("/Users/d3m629/OneDrive/TMT_pipeline/study/plex_design/fractions.txt")
+aggregation_level <- c("PlexID","accession")
+samples <- read_tsv("/Users/d3m629/OneDrive/TMT_pipeline/study/plex_design/samples.txt")
+references <- read_tsv("/Users/d3m629/OneDrive/TMT_pipeline/study/plex_design/references.txt")
+out <- create_crosstab(msnid,masic_data,aggregation_level,fractions,samples,references)
+
+
+
+path_to_FASTA <- "/Users/d3m629/OneDrive/TMT_pipeline/study/fasta2/rat.fasta"
+path_to_new_FASTA <- remap_accessions_refseq_to_gene_fasta(path_to_FASTA,"Rattus norvegicus")
+
+

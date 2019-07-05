@@ -1,0 +1,26 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1562296530435.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "0",
+    "id" : "1A85808F",
+    "lastKnownWriteTime" : 1562359729,
+    "last_content_update" : 1562359729969,
+    "path" : "~/OneDrive/TMT_pipeline/PlexedPiper/vignettes/tmt_pipeline_v1.Rmd",
+    "project_path" : "vignettes/tmt_pipeline_v1.Rmd",
+    "properties" : {
+        "cursorPosition" : "183,12",
+        "last_setup_crc32" : "",
+        "scrollLine" : "22"
+    },
+    "read_only" : false,
+    "read_only_alternatives" : [
+    ],
+    "relative_order" : 16,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_markdown"
+}

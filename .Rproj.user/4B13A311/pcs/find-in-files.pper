@@ -1,0 +1,10 @@
+{
+    "dialog-state" : {
+        "caseSensitive" : false,
+        "filePatterns" : [
+        ],
+        "path" : "~/OneDrive/TMT_pipeline/PlexedPiper",
+        "query" : "mass_measurement_error",
+        "regex" : false
+    }
+}

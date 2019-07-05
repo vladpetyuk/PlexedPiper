@@ -1,0 +1,22 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1562141190341.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "1424062934",
+    "id" : "83F6AE8F",
+    "lastKnownWriteTime" : 1562018366,
+    "last_content_update" : 1562018366,
+    "path" : "~/OneDrive/TMT_pipeline/PlexedPiper/R/read_msgf_data.R",
+    "project_path" : "R/read_msgf_data.R",
+    "properties" : {
+        "cursorPosition" : "27,21",
+        "scrollLine" : "22"
+    },
+    "relative_order" : 6,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}
