@@ -11,7 +11,7 @@ data. The key inputs are:
    * table identifying reference within each plex
 
 ```{r}
-devtools::install_github("vladpetyuk/PlexedPiper")
+remotes::install_github("vladpetyuk/PlexedPiper")
 library(PlexedPiper)
 vignette("tmt_pipeline_v1")
 ```
