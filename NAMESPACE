@@ -2,7 +2,8 @@
 
 export(compute_num_peptides_per_1000aa)
 export(create_crosstab)
-export(fetch_masic_data)
+export(dms_fetch_masic_data)
+export(dms_read_msms_data)
 export(filter_masic_data)
 export(filter_msgf_data_peptide_level)
 export(filter_msgf_data_protein_level)
