@@ -13,6 +13,9 @@
 #' Typically intensities from different fractions of the same plex are aggregated.
 #' Also e.g. in global proteomics intensities from different scans identifiying peptides
 #' from the same protein aggregated togeher too.
+#' @param converter (data.frame) A conversion table to covert TMT channels to 
+#' reporter ions calculated by MASIC. If not provided, will default to TMT10
+#' table provided in `PlexedPiperTestData` package called `reporter_converter`.
 #' @return (matrix) with log2-transformed relative reporter ion intensities.
 #' Row names are the names of the measured species.
 #' Column names are the names of the samples.

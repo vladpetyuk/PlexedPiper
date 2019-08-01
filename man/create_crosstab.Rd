@@ -5,7 +5,7 @@
 \title{Makes Cross-Tab With Quantitative Data.}
 \usage{
 create_crosstab(msnid, reporter_intensities, aggregation_level, fractions,
-  samples, references)
+  samples, references, converter)
 }
 \arguments{
 \item{msnid}{(MSnID object) filtered MS/MS identifications}
@@ -18,6 +18,10 @@ At this point the only aggregation function is `sum`.
 Typically intensities from different fractions of the same plex are aggregated.
 Also e.g. in global proteomics intensities from different scans identifiying peptides
 from the same protein aggregated togeher too.}
+
+\item{converter}{(data.frame) A conversion table to covert TMT channels to 
+reporter ions calculated by MASIC. If not provided, will default to TMT10
+table provided in `PlexedPiperTestData` package called `reporter_converter`.}
 }
 \value{
 (matrix) with log2-transformed relative reporter ion intensities.
