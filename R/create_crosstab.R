@@ -53,14 +53,18 @@ create_crosstab <- function(msnid,
                             aggregation_level,
                             fractions,
                             samples,
-                            references){
+                            references,
+                            converter){
 
    # merges MS/MS IDs with reporter intensities
    quant_data <- link_msms_and_reporter_intensities(msnid, reporter_intensities)
    # aggregates reporter intensities to a given level
    quant_data <- aggregate_reporters(quant_data, fractions, aggregation_level)
    # taking ratios of reporter ion intensities to whatever the reference is
-   out <- converting_to_relative_to_reference(quant_data, samples, references)
+   out <- converting_to_relative_to_reference(quant_data, 
+                                              samples, 
+                                              references, 
+                                              converter)
    return(out)
 }
 
@@ -111,7 +115,10 @@ aggregate_reporters <- function(quant_data, fractions, aggregation_level)
 }
 
 # no export
-converting_to_relative_to_reference <- function(quant_data, samples, references)
+converting_to_relative_to_reference <- function(quant_data, 
+                                                samples, 
+                                                references,
+                                                converter)
 {
 
    # transforming from wide to long form
@@ -124,8 +131,13 @@ converting_to_relative_to_reference <- function(quant_data, samples, references)
 
    # preparing sample info
    samples <- data.table(samples)
-   converter <- data.table(reporter_converter)
-   samples <- merge(samples, reporter_converter)
+   if (is.null(converter)) {
+     converter <- data.table(reporter_converter)
+   }
+   else {
+     converter <- data.table(converter)
+   }
+   samples <- merge(samples, converter)
    setkey(samples, PlexID, ReporterIon)
 
    # merging reporter intensities with sample info
@@ -152,8 +164,13 @@ converting_to_relative_to_reference <- function(quant_data, samples, references)
 
       # compute reference values for this particular PlexID/QuantBlock combo
       # TODO. Maybe there is a more elegant, more data.table-esque way.
-      ref_values <- with(quant_data_i_w, eval(parse(text=ref_i$Reference)))
-
+      if (ref_i$Reference == "ref") {
+        ref_values <- quant_data_i_w$ref
+      }
+      else {
+        ref_values <- with(quant_data_i_w, eval(parse(text=ref_i$Reference)))
+      }
+      
       # take the ratios over the reference
       quant_data_i_w <- quant_data_i_w/ref_values
 
