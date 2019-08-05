@@ -57,7 +57,7 @@ create_crosstab <- function(msnid,
                             fractions,
                             samples,
                             references,
-                            converter){
+                            converter = reporter_converter){
 
    # merges MS/MS IDs with reporter intensities
    quant_data <- link_msms_and_reporter_intensities(msnid, reporter_intensities)
@@ -134,12 +134,7 @@ converting_to_relative_to_reference <- function(quant_data,
 
    # preparing sample info
    samples <- data.table(samples)
-   if (is.null(converter)) {
-     converter <- data.table(reporter_converter)
-   }
-   else {
-     converter <- data.table(converter)
-   }
+   converter <- data.table(converter)
    samples <- merge(samples, converter)
    setkey(samples, PlexID, ReporterIon)
 
