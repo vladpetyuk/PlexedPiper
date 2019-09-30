@@ -20,10 +20,13 @@ vignette("tmt_pipeline_v1")
 Compantion R package with test data based on MoTrPAC pilot study is available
 here [PlexedPiperTestData](https://github.com/vladpetyuk/PlexedPiperTestData)
 
-Note, if decided to run using docker, then the docker should have 
-ODBC header files `sql.h` and `sqlext.h`. Add this into `Dockerfile`
+Note, if decided to run using docker, add this into `Dockerfile`:
 ```{bash}
 RUN apt-get install -y --no-install-recommends \
- unixodbc unixodbc-dev freetds-dev freetds-bin tdsodbc
+ unixodbc unixodbc-dev freetds-dev freetds-bin tdsodbc \
+ libcurl4-openssl-dev \
+ libxml2-dev \
+ libnetcdf-dev \
+ libssl-dev
 ```
 
