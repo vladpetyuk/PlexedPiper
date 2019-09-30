@@ -89,7 +89,7 @@ accessions switched from RefSeq to gene symbols.
 path_to_FASTA <- system.file(
    "extdata/Rattus_norvegicus_NCBI_RefSeq_2018-04-10.fasta.gz",
    package = "PlexedPiperTestData")
-temp_dir <- tempdir()
+temp_dir <- tempdir(check=TRUE)
 file.copy(path_to_FASTA, temp_dir)
 path_to_FASTA <- file.path(temp_dir, basename(path_to_FASTA))
 path_to_FASTA_gene <- remap_accessions_refseq_to_gene_fasta(
