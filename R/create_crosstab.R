@@ -13,9 +13,6 @@
 #' Typically intensities from different fractions of the same plex are aggregated.
 #' Also e.g. in global proteomics intensities from different scans identifiying peptides
 #' from the same protein aggregated togeher too.
-#' @param converter (data.frame) A conversion table to covert TMT channels to 
-#' reporter ions calculated by MASIC. If not provided, will default to TMT10
-#' table provided in `PlexedPiperTestData` package called `reporter_converter`.
 #' @return (matrix) with log2-transformed relative reporter ion intensities.
 #' Row names are the names of the measured species.
 #' Column names are the names of the samples.
@@ -56,8 +53,7 @@ create_crosstab <- function(msnid,
                             aggregation_level,
                             fractions,
                             samples,
-                            references,
-                            converter = reporter_converter){
+                            references){
 
    # merges MS/MS IDs with reporter intensities
    quant_data <- link_msms_and_reporter_intensities(msnid, reporter_intensities)
@@ -66,8 +62,7 @@ create_crosstab <- function(msnid,
    # taking ratios of reporter ion intensities to whatever the reference is
    out <- converting_to_relative_to_reference(quant_data, 
                                               samples, 
-                                              references, 
-                                              converter)
+                                              references)
    return(out)
 }
 
@@ -120,8 +115,7 @@ aggregate_reporters <- function(quant_data, fractions, aggregation_level)
 # no export
 converting_to_relative_to_reference <- function(quant_data, 
                                                 samples, 
-                                                references,
-                                                converter)
+                                                references)
 {
 
    # transforming from wide to long form
@@ -134,7 +128,21 @@ converting_to_relative_to_reference <- function(quant_data,
 
    # preparing sample info
    samples <- data.table(samples)
-   converter <- data.table(converter)
+   
+   reporter_ions <- unique(quant_data$ReporterIon)
+   # loop through list of reporter ion converter tables, find which table 
+   # matches all ions
+   for (i in 1:length(reporter_converter)) {
+     if (isTRUE(all.equal.character(as.character(reporter_ions), 
+                                    reporter_converter[[i]]$ReporterIon))) {
+       converter <- data.table(reporter_converter[[i]])
+     }
+   }
+   
+   if (!exists("converter")) {
+     stop("No reporter ion converter tables match the reporter ions in MASIC data")
+   }
+
    samples <- merge(samples, converter)
    setkey(samples, PlexID, ReporterIon)
 
