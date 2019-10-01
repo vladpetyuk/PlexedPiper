@@ -2,7 +2,6 @@
 #'
 #' Reading MSGF output from PNNL's DMS
 #'
-#' @param path_to_MSGF_results (path string) to directory with MSGF results for all datasets
 #' @param DataPkgNumber (Numeric or Character vector) containing Data Package ID(s) located in DMS
 #' @return (MSnID) MSnID object
 #' @importFrom dplyr mutate
@@ -15,7 +14,7 @@
 #' head(MSnID::psms(msnid))
 
 #' @export
-dms_read_msms_data <- function(path_to_MSGF_results, DataPkgNumber = NULL){
+dms_read_msms_data <- function(DataPkgNumber = NULL){
   msnid <- MSnID(".")
   # accession -> Protein
   # calculatedMassToCharge -> f(MH, Charge) MSnID:::.PROTON_MASS
@@ -58,28 +57,6 @@ dms_read_msms_data <- function(path_to_MSGF_results, DataPkgNumber = NULL){
     return(msnid)
   }
   
-  else{
-    x <- collate_files(path_to_MSGF_results, "_msgfplus_syn.txt") %>%
-      mutate(accession = Protein,
-             calculatedMassToCharge = (MH + (Charge-1)*MSnID:::.PROTON_MASS)/Charge,
-             chargeState = Charge,
-             experimentalMassToCharge = PrecursorMZ,
-             isDecoy = grepl("^XXX", Protein),
-             peptide = Peptide,
-             spectrumFile = Dataset,
-             spectrumID = Scan)
-    # extra piece that may be removed in the future.
-    # decoy accessions stripped of XXX_ prefix
-    # x <- x %>%
-    #    mutate(accession = sub("^XXX_","",accession))
-    
-    # clean peptide sequences
-    x <- mutate(x, pepSeq = MSnID:::.get_clean_peptide_sequence(peptide))
-    
-    psms(msnid) <- x
-    
-    return(msnid)
-  }
 }
 
 

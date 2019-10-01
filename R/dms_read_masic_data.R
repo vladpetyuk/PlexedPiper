@@ -2,16 +2,15 @@
 #'
 #' Reading MASIC output from PNNL's DMS
 #'
-#' @param path_to_MASIC_results (path string) to directory with MASIC results for all datasets
 #' @param DataPkgNumber (Numeric or Character vector) containing Data Package ID(s) located in DMS
 #' @param extra_metrics (logical) fetch extra metrics that MASIC extracts from dataset or not. Default is FALSE.
 #' @return (data.frame) with reporter ion intensities and other metrics
 #' @importFrom dplyr select
 #' @importFrom plyr llply
 #' @importFrom data.table rbindlist
-#' @export dms_fetch_masic_data
+#' @export dms_read_masic_data
 
-dms_fetch_masic_data <- function(path_to_MASIC_results, DataPkgNumber = NULL, extra_metrics=FALSE){
+dms_read_masic_data <- function(DataPkgNumber = NULL, extra_metrics=FALSE){
   library("plyr")
   library("data.table")
   
@@ -53,14 +52,6 @@ dms_fetch_masic_data <- function(path_to_MASIC_results, DataPkgNumber = NULL, ex
     
   }
   
-  else {
-    results = llply( path_to_MASIC_results,
-                     fetch_masic_data_for_single_datset,
-                     fileNamePttrn=tool2suffix[["MASIC_Finnigan"]],
-                     .progress = "text")
-    results.dt <- rbindlist(results)
-    return(as.data.frame(results.dt))
-  }
 }
 
 
