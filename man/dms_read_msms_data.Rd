@@ -4,11 +4,9 @@
 \alias{dms_read_msms_data}
 \title{Reading MSGF Results. Generic.}
 \usage{
-dms_read_msms_data(path_to_MSGF_results, DataPkgNumber = NULL)
+dms_read_msms_data(DataPkgNumber = NULL)
 }
 \arguments{
-\item{path_to_MSGF_results}{(path string) to directory with MSGF results for all datasets}
-
 \item{DataPkgNumber}{(Numeric or Character vector) containing Data Package ID(s) located in DMS}
 }
 \value{
