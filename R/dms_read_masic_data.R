@@ -2,39 +2,73 @@
 #'
 #' Reading MASIC output from PNNL's DMS
 #'
-#' @param path_to_MASIC_results (path string) to directory with MASIC results for all datasets
+#' @param DataPkgNumber (Numeric or Character vector) containing Data Package ID(s) located in DMS
 #' @param extra_metrics (logical) fetch extra metrics that MASIC extracts from dataset or not. Default is FALSE.
 #' @return (data.frame) with reporter ion intensities and other metrics
+#' @importFrom dplyr select
 #' @importFrom plyr llply
 #' @importFrom data.table rbindlist
-#' @export fetch_masic_data
+#' @export dms_read_masic_data
 
-fetch_masic_data <- function(path_to_MASIC_results, extra_metrics=FALSE){
-   library("plyr")
-   library("data.table")
-   results = llply( path_to_MASIC_results,
-                    fetch_masic_data_for_single_datset,
-                    fileNamePttrn=tool2suffix[["MASIC_Finnigan"]],
-                    .progress = "text")
-   results.dt <- rbindlist(results)
-   return(as.data.frame(results.dt))
+dms_read_masic_data <- function(DataPkgNumber, extra_metrics=FALSE){
+  library("plyr")
+  library("data.table")
+  
+  if (!is.null(DataPkgNumber)) {
+    # Fetch job records for data package(s)
+    if (length(DataPkgNumber) > 1) {
+      job_rec_ls <- lapply(DataPkgNumber, get_job_records_by_dataset_package)
+      jobRecords <- Reduce(rbind, job_rec_ls)
+    }
+    
+    else {
+      jobRecords <- get_job_records_by_dataset_package(DataPkgNumber)
+    }
+    
+    jobRecords <- jobRecords[grepl("MASIC", jobRecords$Tool),]
+    
+    masicData <- get_results_for_multiple_jobs.dt(jobRecords)
+    
+    if (extra_metrics) {
+      results = llply( jobRecords[["Folder"]],
+                       get_results_for_single_job.dt,
+                       fileNamePttrn="_SICstats.txt",
+                       .progress = "text")
+      results.dt <- rbindlist(results)
+      masicStats <- as.data.frame(results.dt)
+      masicStats <- masicStats[,-2] # Remove redundant Dataset column
+      masicData  <- masicData[,-2] # Remove redundant Dataset column
+      
+      # Combine masicData and masicStats
+      x <- select(masicData, Dataset, ScanNumber, starts_with("Ion"), -contains("Resolution"))
+      y <- select(masicStats, Dataset, ScanNumber = FragScanNumber, contains('InterferenceScore'))
+      z <- inner_join(x, y)
+      
+      return(z)
+    }
+    masicData <- masicData[,-2]
+    masicData <- select(masicData, Dataset, ScanNumber, starts_with("Ion"), -contains("Resolution"))
+    return(masicData)
+    
+  }
+  
 }
 
 
 fetch_masic_data_for_single_datset <- function(pathToFile, fileNamePttrn ){
-   pathToFile = list.files( path=as.character(pathToFile),
-                            pattern=fileNamePttrn,
-                            full.names=T)
-   if(length(pathToFile) == 0){
-      stop("can't find the results file")
-   }
-   if(length(pathToFile) > 1){
-      stop("ambiguous results files")
-   }
-   results = read.delim( pathToFile, header=T, stringsAsFactors = FALSE)
-   dataset = strsplit( basename(pathToFile), split=fileNamePttrn)[[1]]
-   out = data.table(Dataset=dataset, results)
-   return(out)
+  pathToFile = list.files( path=as.character(pathToFile),
+                           pattern=fileNamePttrn,
+                           full.names=T)
+  if(length(pathToFile) == 0){
+    stop("can't find the results file")
+  }
+  if(length(pathToFile) > 1){
+    stop("ambiguous results files")
+  }
+  results = read.delim( pathToFile, header=T, stringsAsFactors = FALSE)
+  dataset = strsplit( basename(pathToFile), split=fileNamePttrn)[[1]]
+  out = data.table(Dataset=dataset, results)
+  return(out)
 }
 
 
