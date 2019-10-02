@@ -171,12 +171,12 @@ converting_to_relative_to_reference <- function(quant_data,
 
       # compute reference values for this particular PlexID/QuantBlock combo
       # TODO. Maybe there is a more elegant, more data.table-esque way.
-      if (ref_i$Reference == "ref") {
-        ref_values <- quant_data_i_w$ref
+      if (is.factor(ref_i$Reference)) {
+        ref_i$Reference <- as.character(ref_i$Reference)
       }
-      else {
-        ref_values <- with(quant_data_i_w, eval(parse(text=ref_i$Reference)))
-      }
+      
+      ref_values <- with(quant_data_i_w, eval(parse(text=ref_i$Reference)))
+      
       
       # take the ratios over the reference
       quant_data_i_w <- quant_data_i_w/ref_values
