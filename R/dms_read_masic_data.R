@@ -10,7 +10,7 @@
 #' @importFrom data.table rbindlist
 #' @export dms_read_masic_data
 
-dms_read_masic_data <- function(DataPkgNumber = NULL, extra_metrics=FALSE){
+dms_read_masic_data <- function(DataPkgNumber, extra_metrics=FALSE){
   library("plyr")
   library("data.table")
   

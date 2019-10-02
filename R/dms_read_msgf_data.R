@@ -14,7 +14,7 @@
 #' head(MSnID::psms(msnid))
 
 #' @export
-dms_read_msms_data <- function(DataPkgNumber = NULL){
+dms_read_msms_data <- function(DataPkgNumber){
   msnid <- MSnID(".")
   # accession -> Protein
   # calculatedMassToCharge -> f(MH, Charge) MSnID:::.PROTON_MASS
