@@ -132,10 +132,11 @@ converting_to_relative_to_reference <- function(quant_data,
    reporter_ions <- unique(quant_data$ReporterIon)
    # loop through list of reporter ion converter tables, find which table 
    # matches all ions
-   for (i in 1:length(reporter_converter)) {
-     if (isTRUE(all.equal.character(as.character(reporter_ions), 
-                                    reporter_converter[[i]]$ReporterIon))) {
+   for (i in seq_along(reporter_converter)) {
+     if (setequal(as.character(reporter_ions), 
+                                    reporter_converter[[i]]$ReporterIon)) {
        converter <- data.table(reporter_converter[[i]])
+       break
      }
    }
    
