@@ -20,6 +20,15 @@ compute_num_peptides_per_1000aa <- function(msnid,
                                             path_to_FASTA){
    # fasta
    mySequences <- readAAStringSet(path_to_FASTA)
+   
+   prots <- unique(msnid$Protein)[!grepl("^XXX|^Contam", msnid$Protein)]
+   fst_prots <- sub("^(\\S+)\\s.*", "\\1", names(mySequences))
+   
+   if (length(prots[!prots %in% fst_prots]) > 0) {
+      stop("There are proteins in the MSnID object that aren't found in the 
+           fasta file provided")
+   }
+   
    # compute protein lengths
    prot_lengths <-
       data.frame(accession = sub("^(\\S+)\\s.*","\\1",names(mySequences)),
