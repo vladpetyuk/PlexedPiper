@@ -11,10 +11,22 @@ data. The key inputs are:
    * table identifying reference within each plex
 
 ```{r}
-remotes::install_github("vladpetyuk/PlexedPiper")
+if(!require("remotes", quietly = T)) install.packages("remotes")
+remotes::install_github("vladpetyuk/PlexedPiper", build_vignettes = TRUE)
 library(PlexedPiper)
 vignette("tmt_pipeline_v1")
 ```
 
 Compantion R package with test data based on MoTrPAC pilot study is available
 here [PlexedPiperTestData](https://github.com/vladpetyuk/PlexedPiperTestData)
+
+Note, if decided to run using docker, add this into `Dockerfile`:
+```{bash}
+RUN apt-get install -y --no-install-recommends \
+ unixodbc unixodbc-dev freetds-dev freetds-bin tdsodbc \
+ libcurl4-openssl-dev \
+ libxml2-dev \
+ libnetcdf-dev \
+ libssl-dev
+```
+

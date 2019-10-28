@@ -17,16 +17,17 @@ Imports:
    AnnotationHub,
    AnnotationDbi,
    Biostrings,
+   BiocStyle,
    data.table,
    dplyr,
    plyr,
    RODBC,
    tidyr,
    tidyselect,
-   tools
-Suggests: 
-    knitr,
-    rmarkdown
+   tools,
+   knitr,
+   rmarkdown,
+   readr
 Remotes: vladpetyuk/PlexedPiperTestData
 biocViews:
 VignetteBuilder: knitr

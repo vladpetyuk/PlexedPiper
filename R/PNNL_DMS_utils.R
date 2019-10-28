@@ -37,8 +37,9 @@
 NULL
 
 # dictionary that defines the suffix of the files given the analysis tool
-tool2suffix = list("MSGFPlus_MzML"="_msgfdb_syn.txt",
-                   "MSGFPlus_DTARefinery"="_msgfdb_syn.txt",
+tool2suffix = list("MSGFPlus"="_msgfplus_syn.txt",
+                   "MSGFPlus_MzML"="_msgfplus_syn.txt",
+                   "MSGFPlus_DTARefinery"="_msgfplus_syn.txt",
                    "MSGFDB_DTARefinery"="_msgfdb_syn.txt",
                    "MASIC_Finnigan"="_ReporterIons.txt")
 
