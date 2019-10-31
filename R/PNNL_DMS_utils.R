@@ -37,11 +37,11 @@
 NULL
 
 # dictionary that defines the suffix of the files given the analysis tool
-tool2suffix = list("MSGFPlus"="_msgfplus_syn.txt",
-                   "MSGFPlus_MzML"="_msgfplus_syn.txt",
-                   "MSGFPlus_DTARefinery"="_msgfplus_syn.txt",
-                   "MSGFDB_DTARefinery"="_msgfdb_syn.txt",
-                   "MASIC_Finnigan"="_ReporterIons.txt")
+tool2suffix <- list("MSGFPlus"="_msgfplus_syn.txt",
+                    "MSGFPlus_MzML"="_msgfplus_syn.txt",
+                    "MSGFPlus_DTARefinery"="_msgfplus_syn.txt",
+                    "MSGFDB_DTARefinery"="_msgfdb_syn.txt",
+                    "MASIC_Finnigan"="_ReporterIons.txt")
 
 get_driver <- function(){
    if(.Platform$OS.type == "unix"){
@@ -246,7 +246,6 @@ get_AScore_results <- function(dataPkgNumber){
    # end of read the stuff
    umount_cmd <- sprintf("umount %s", local_folder)
    system(umount_cmd)
-   system(sprintf("unlink %s", local_folder))
    unlink(local_folder, recursive = T)
 
    # in case Windows
@@ -354,10 +353,49 @@ get_results_for_single_job <- function(pathToFile, fileNamePttrn){
 }
 
 
+#' #' @export
+#' #' @rdname pnnl_dms_utils
+#' get_results_for_single_job.dt <- function(pathToFile, fileNamePttrn){
+#'    pathToFile = list.files(path=as.character(pathToFile),
+#'                            pattern=fileNamePttrn,
+#'                            full.names=T)
+#'    if(length(pathToFile) == 0){
+#'       stop("can't find the results file")
+#'    }
+#'    if(length(pathToFile) > 1){
+#'       stop("ambiguous results files")
+#'    }
+#'    results <- read.delim( pathToFile, header=T, stringsAsFactors = FALSE)
+#'    dataset <- strsplit( basename(pathToFile), split=fileNamePttrn)[[1]]
+#'    out <- data.table(Dataset=dataset, results)
+#'    return(out)
+#' }
+
+
+
 #' @export
 #' @rdname pnnl_dms_utils
 get_results_for_single_job.dt <- function(pathToFile, fileNamePttrn){
-   pathToFile = list.files(path=as.character(pathToFile),
+
+   pathToFile <- as.character(pathToFile)
+   if(.Platform$OS.type == "unix"){
+      local_folder <- "~/temp_msms_results"
+      if (file.exists(local_folder)){
+         # handling in case folder exists
+      }else{
+         dir.create(local_folder)
+         remote_folder <- gsub("\\\\","/",pathToFile)
+         mount_cmd <- sprintf("mount -t smbfs %s %s", remote_folder, local_folder)
+         system(mount_cmd)
+      }
+   }else if(.Platform$OS.type == "windows"){
+      # pass
+      local_folder <- pathToFile
+   }else{
+      stop("Unknown OS type.")
+   }
+
+   pathToFile <- list.files(path=local_folder,
                            pattern=fileNamePttrn,
                            full.names=T)
    if(length(pathToFile) == 0){
@@ -366,9 +404,18 @@ get_results_for_single_job.dt <- function(pathToFile, fileNamePttrn){
    if(length(pathToFile) > 1){
       stop("ambiguous results files")
    }
-   results <- read.delim( pathToFile, header=T, stringsAsFactors = FALSE)
-   dataset <- strsplit( basename(pathToFile), split=fileNamePttrn)[[1]]
+   results <- read_tsv(pathToFile)
+
+   if(.Platform$OS.type == "unix"){
+      umount_cmd <- sprintf("umount %s", local_folder)
+      system(umount_cmd)
+      unlink(local_folder, recursive = T)
+   }
+
+   dataset <- strsplit(basename(pathToFile), split=fileNamePttrn)[[1]]
    out <- data.table(Dataset=dataset, results)
    return(out)
 }
+
+
 

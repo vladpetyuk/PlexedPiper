@@ -26,6 +26,7 @@ filtering part.
 ```{r libraries}
 library(PlexedPiper)
 library(MSnID)
+library(tidyverse)
 ```
 
 
@@ -42,7 +43,7 @@ First step is to determine MS-GF+ jobs using the data package number.
 
 This simply reads parsed to text output of MS-GF+ search engine. The text files
 are collated together and the resulting `data.frame` used to create MSnID object.
-```{r msms}
+```{r msms, eval=FALSE}
 msms <- dms_read_msms_data(3442)
 
 con_str <- sprintf("DRIVER={%s};SERVER=gigasax;DATABASE=dms5;%s", 
@@ -62,6 +63,16 @@ strSQL = sprintf("\n                    SELECT *\n                    FROM V_Mag
         3442)
 jr <- dbSendQuery(con, strSQL, stringsAsFactors = FALSE)
 stuff <- dbFetch(jr)
+
+
+
+pth <- "\\\\proto-3\\QExactHF03\\2017_4\\MoTrPAC_Pilot_TMT_W_S1_01_12Oct17_Elm_AQ-17-09-02\\MSG201804111041_Auto1572014"
+x <- get_results_for_single_job.dt(pth, "_msgfplus_syn.txt")
+
+
+# mount smbfs -t //proto-3/QExactHF03/2017_4/MoTrPAC_Pilot_TMT_W_S1_01_12Oct17_Elm_AQ-17-09-02/MSG201804111041_Auto1572014 ~/temp2
+
+
 
 ```
 
