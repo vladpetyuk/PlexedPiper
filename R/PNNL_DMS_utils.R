@@ -382,6 +382,7 @@ get_results_for_single_job.dt <- function(pathToFile, fileNamePttrn){
       local_folder <- "~/temp_msms_results"
       if (file.exists(local_folder)){
          # handling in case folder exists
+         unlink(local_folder, recursive = T)
       }else{
          dir.create(local_folder)
          remote_folder <- gsub("\\\\","/",pathToFile)
