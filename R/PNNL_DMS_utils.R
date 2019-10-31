@@ -7,7 +7,6 @@
 #' to be installed. Mac/Linux functionality is not well tested.
 #'
 #' @description
-#' * `get_server_name_for_mtdb()`: returns the server name it is stored at given mass tag database
 #' * `get_dms_job_records()`: returns job records given variety keyword patterns
 #' * `get_tool_output_files_for_job_number()`: returns the output of the tool given tool name and file pattern
 #' * `get_output_folder_for_job_and_tool()`: returns the path given job id and tool name
@@ -27,7 +26,8 @@
 #' @param xPttrn (string) substrings for names of dataset, experiment, tool, parameter file, settings file, fasta file, protein options, instrument name
 #' @param mostRecent (logical) only most recent or all output files
 #'
-#' @importFrom RODBC odbcDriverConnect sqlQuery
+#' @importFrom odbc odbc dbConnect dbSendQuery dbFetch dbClearResult dbDisconnect
+#'
 # '@importFrom data.table
 #'
 #' @name pnnl_dms_utils
@@ -64,27 +64,9 @@ get_auth <- function(){
 }
 
 
-
 #' @export
 #' @rdname pnnl_dms_utils
-get_server_name_for_mtdb = function(mtdbName)
-   # a way to find which server MT DB is located
-{
-   con_str <- sprintf("DRIVER={%s};SERVER=Pogo;DATABASE=MTS_Master;%s",
-                      get_driver(),
-                      get_auth())
-   con <- odbcDriverConnect(con_str)
-   strSQL = sprintf("SELECT Server_Name
-                    FROM V_MTS_MT_DBs
-                    WHERE MT_DB_Name = '%s'", mtdbName)
-   dbServer = sqlQuery(con,strSQL)
-   close(con)
-   return(as.character(dbServer[1,1]))
-}
-
-#' @export
-#' @rdname pnnl_dms_utils
-get_dms_job_records = function(
+get_dms_job_records <- function(
    jobs = NULL,
    datasetPttrn = "",
    experimentPttrn = "",
@@ -109,7 +91,7 @@ get_dms_job_records = function(
    con_str <- sprintf("DRIVER={%s};SERVER=gigasax;DATABASE=dms5;%s",
                       get_driver(),
                       get_auth())
-   con <- odbcDriverConnect(con_str)
+   con <- dbConnect(odbc(), .connection_string=con_str)
 
    # set-up query based on job list
    if(!is.null(jobs)){
@@ -139,8 +121,10 @@ get_dms_job_records = function(
                        proteinOptionsPttrn,
                        intrumentPttrn)
    }
-   locationPointersToMSMSjobs = sqlQuery(con, strSQL, stringsAsFactors=FALSE)
-   close(con)
+   qry <- dbSendQuery(con, strSQL)
+   locationPointersToMSMSjobs <- dbFetch(qry)
+   dbClearResult(qry)
+   dbDisconnect(con)
    return(locationPointersToMSMSjobs)
 }
 
@@ -181,49 +165,123 @@ get_output_folder_for_job_and_tool <- function(jobNumber, toolName, mostRecent=T
    con_str <- sprintf("DRIVER={%s};SERVER=gigasax;DATABASE=DMS_Pipeline;%s",
                       get_driver(),
                       get_auth())
-   con <- odbcDriverConnect(con_str)
-
+   con <- dbConnect(odbc(), .connection_string=con_str)
    strSQLPattern = "SELECT Output_Folder
    FROM V_Job_Steps_History
    WHERE (Job = %s) AND (Tool = '%s') AND (Most_Recent_Entry = 1)"
-   strSQL = sprintf( strSQLPattern, jobNumber, toolName)
-   qry = sqlQuery(con, strSQL)
-   close(con)
-   return(as.character(qry[1,1]))
+   strSQL <- sprintf( strSQLPattern, jobNumber, toolName)
+   qry <- dbSendQuery(con, strSQL)
+   res <- dbFetch(qry)
+   dbClearResult(qry)
+   dbDisconnect(con)
+   return(as.character(res[1,1]))
 }
+
+
+#' #' @export
+#' #' @rdname pnnl_dms_utils
+#' # Get AScore results for a given data package
+#' get_AScore_results <- function(dataPkgNumber)
+#' {
+#'    #
+#'    con_str <- sprintf("DRIVER={%s};SERVER=gigasax;DATABASE=dms5;%s",
+#'                       get_driver(),
+#'                       get_auth())
+#'    con <- dbConnect(odbc(), .connection_string=con_str)
+#'    strSQL <- sprintf("SELECT *
+#'                      FROM V_Mage_Analysis_Jobs
+#'                      WHERE (Dataset LIKE 'DataPackage_%s%%')", dataPkgNumber)
+#'    qry <- dbSendQuery(con, strSQL)
+#'    jobs <- dbFetch(qry)
+#'    dbClearResult(qry)
+#'    dbDisconnect(con)
+#'    #
+#'    if(nrow(jobs) == 1){
+#'       # library("RSQLite")
+#'       dlist <- basename(as.character(jobs["Folder"]))
+#'       idx <- which.max(as.numeric(sub("Step_(\\d+)_.*", "\\1", dlist))) # the Results supposed to be in the last folder
+#'       ascoreResultDB <- file.path( jobs["Folder"], dlist[idx], "Results.db3")
+#'       db <- dbConnect(SQLite(), dbname = ascoreResultDB)
+#'       AScores <- dbGetQuery(db, "SELECT * FROM t_results_ascore")
+#'       dbDisconnect(db)
+#'       return(AScores)
+#'    }else{
+#'       return(NULL)
+#'    }
+#' }
 
 
 #' @export
 #' @rdname pnnl_dms_utils
-# Get AScore results for a given data package
-get_AScore_results <- function(dataPkgNumber)
-{
+# Get AScore results for a given data package (e.g. 3432)
+get_AScore_results <- function(dataPkgNumber){
    #
    con_str <- sprintf("DRIVER={%s};SERVER=gigasax;DATABASE=dms5;%s",
                       get_driver(),
                       get_auth())
-   con <- odbcDriverConnect(con_str)
+   con <- dbConnect(odbc(), .connection_string=con_str)
    strSQL <- sprintf("SELECT *
                      FROM V_Mage_Analysis_Jobs
                      WHERE (Dataset LIKE 'DataPackage_%s%%')", dataPkgNumber)
-   jobs <- sqlQuery(con, strSQL, stringsAsFactors=FALSE)
-   close(con)
-   #
-   if(nrow(jobs) == 1){
-      # library("RSQLite")
-      dlist <- dir(as.character(jobs["Folder"]))
-      idx <- which.max(as.numeric(sub("Step_(\\d+)_.*", "\\1", dlist))) # the Results supposed to be in the last folder
-      ascoreResultDB <- file.path( jobs["Folder"], dlist[idx], "Results.db3")
-      db <- dbConnect(SQLite(), dbname = ascoreResultDB)
-      AScores <- dbGetQuery(db, "SELECT * FROM t_results_ascore")
-      dbDisconnect(db)
-      return(AScores)
-   }else{
-      return(NULL)
+   qry <- dbSendQuery(con, strSQL)
+   job <- dbFetch(qry)
+   dbClearResult(qry)
+   dbDisconnect(con)
+
+   # in case Mac OS
+   local_folder <- "~/temp_AScoreResults"
+   if (file.exists(local_folder)){
+      # handling in case folder exists
+   } else {
+      dir.create(local_folder)
    }
+   remote_folder <- gsub("\\\\","/",job['Folder'])
+   mount_cmd <- sprintf("mount -t smbfs %s %s", remote_folder, local_folder)
+   system(mount_cmd)
+   # read the stuff
+   ascores <- read_tsv(
+      file.path(local_folder,"Concatenated_msgfplus_syn_ascore.txt"))
+   job_to_dataset_map <- read_tsv(
+      file.path(local_folder,"Job_to_Dataset_Map.txt"))
+   # end of read the stuff
+   umount_cmd <- sprintf("umount %s", local_folder)
+   system(umount_cmd)
+   system(sprintf("unlink %s", local_folder))
+   unlink(local_folder, recursive = T)
+
+   # in case Windows
+   ascores <- read_tsv(
+      file.path(job['Folder'],"Concatenated_msgfplus_syn_ascore.txt"))
+   job_to_dataset_map <- read_tsv(
+      file.path(job['Folder'],"Job_to_Dataset_Map.txt"))
+
+   res <- inner_join(ascores, job_to_dataset_map)
+
+   return(res)
 }
 
 
+# RODBC version
+#' #' @export
+#' #' @rdname pnnl_dms_utils
+#' get_job_records_by_dataset_package <- function(dataPkgNumber)
+#' {
+#'    con_str <- sprintf("DRIVER={%s};SERVER=gigasax;DATABASE=dms5;%s",
+#'                       get_driver(),
+#'                       get_auth())
+#'    con <- odbcDriverConnect(con_str)
+#'    strSQL = sprintf("
+#'                     SELECT *
+#'                     FROM V_Mage_Data_Package_Analysis_Jobs
+#'                     WHERE Data_Package_ID = %s",
+#'                     dataPkgNumber)
+#'    jr <- sqlQuery(con, strSQL, stringsAsFactors=FALSE)
+#'    close(con)
+#'    return(jr)
+#' }
+
+
+# odbc/DBI verson
 #' @export
 #' @rdname pnnl_dms_utils
 get_job_records_by_dataset_package <- function(dataPkgNumber)
@@ -231,44 +289,47 @@ get_job_records_by_dataset_package <- function(dataPkgNumber)
    con_str <- sprintf("DRIVER={%s};SERVER=gigasax;DATABASE=dms5;%s",
                       get_driver(),
                       get_auth())
-   con <- odbcDriverConnect(con_str)
-   strSQL = sprintf("
-                    SELECT *
-                    FROM V_Mage_Data_Package_Analysis_Jobs
-                    WHERE Data_Package_ID = %s",
-                    dataPkgNumber)
-   jr <- sqlQuery(con, strSQL, stringsAsFactors=FALSE)
-   close(con)
+   con <- dbConnect(odbc(), .connection_string=con_str)
+   strSQL <- sprintf("
+                     SELECT *
+                     FROM V_Mage_Data_Package_Analysis_Jobs
+                     WHERE Data_Package_ID = %s",
+                     dataPkgNumber)
+   qry <- dbSendQuery(con, strSQL)
+   jr <- dbFetch(qry)
+   dbClearResult(qry)
+   dbDisconnect(con)
    return(jr)
 }
 
 
+
 #' @export
 #' @rdname pnnl_dms_utils
-get_results_for_multiple_jobs = function( jobRecords){
-   toolName = unique(jobRecords[["Tool"]])
+get_results_for_multiple_jobs <- function(jobRecords){
+   toolName <- unique(jobRecords[["Tool"]])
    if (length(toolName) > 1){
       stop("Contains results of more then one tool.")
    }
-   results = ldply( jobRecords[["Folder"]],
-                    get_results_for_single_job,
-                    fileNamePttrn=tool2suffix[[toolName]],
-                    .progress = "text")
+   results = ldply(jobRecords[["Folder"]],
+                   get_results_for_single_job,
+                   fileNamePttrn=tool2suffix[[toolName]],
+                   .progress = "text")
    return( results )
 }
 
 
 #' @export
 #' @rdname pnnl_dms_utils
-get_results_for_multiple_jobs.dt <- function( jobRecords){
+get_results_for_multiple_jobs.dt <- function(jobRecords){
    toolName = unique(jobRecords[["Tool"]])
    if (length(toolName) > 1){
       stop("Contains results of more then one tool.")
    }
-   results = llply( jobRecords[["Folder"]],
-                    get_results_for_single_job.dt,
-                    fileNamePttrn=tool2suffix[[toolName]],
-                    .progress = "text")
+   results = llply(jobRecords[["Folder"]],
+                   get_results_for_single_job.dt,
+                   fileNamePttrn=tool2suffix[[toolName]],
+                   .progress = "text")
    results.dt <- rbindlist(results)
    return( as.data.frame(results.dt) ) # in the future I may keep it as data.table
 }
@@ -276,7 +337,7 @@ get_results_for_multiple_jobs.dt <- function( jobRecords){
 
 #' @export
 #' @rdname pnnl_dms_utils
-get_results_for_single_job = function(pathToFile, fileNamePttrn ){
+get_results_for_single_job <- function(pathToFile, fileNamePttrn){
    pathToFile = list.files( path=as.character(pathToFile),
                             pattern=fileNamePttrn,
                             full.names=T)
@@ -286,28 +347,28 @@ get_results_for_single_job = function(pathToFile, fileNamePttrn ){
    if(length(pathToFile) > 1){
       stop("ambiguous results files")
    }
-   results = read.delim( pathToFile, header=T, stringsAsFactors = FALSE)
-   dataset = strsplit( basename(pathToFile), split=fileNamePttrn)[[1]]
-   out = data.frame(Dataset=dataset, results, stringsAsFactors = FALSE)
+   results <- read.delim( pathToFile, header=T, stringsAsFactors = FALSE)
+   dataset <- strsplit( basename(pathToFile), split=fileNamePttrn)[[1]]
+   out <- data.frame(Dataset=dataset, results, stringsAsFactors = FALSE)
    return(out)
 }
 
 
 #' @export
 #' @rdname pnnl_dms_utils
-get_results_for_single_job.dt = function(pathToFile, fileNamePttrn ){
-   pathToFile = list.files( path=as.character(pathToFile),
-                            pattern=fileNamePttrn,
-                            full.names=T)
+get_results_for_single_job.dt <- function(pathToFile, fileNamePttrn){
+   pathToFile = list.files(path=as.character(pathToFile),
+                           pattern=fileNamePttrn,
+                           full.names=T)
    if(length(pathToFile) == 0){
       stop("can't find the results file")
    }
    if(length(pathToFile) > 1){
       stop("ambiguous results files")
    }
-   results = read.delim( pathToFile, header=T, stringsAsFactors = FALSE)
-   dataset = strsplit( basename(pathToFile), split=fileNamePttrn)[[1]]
-   out = data.table(Dataset=dataset, results)
+   results <- read.delim( pathToFile, header=T, stringsAsFactors = FALSE)
+   dataset <- strsplit( basename(pathToFile), split=fileNamePttrn)[[1]]
+   out <- data.table(Dataset=dataset, results)
    return(out)
 }
 

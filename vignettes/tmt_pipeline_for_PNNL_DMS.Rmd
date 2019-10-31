@@ -1,0 +1,64 @@
+---
+title: |
+    Suggested TMT processing pipeline for PNNL DMS.
+
+vignette: >
+  %\VignetteIndexEntry{tmt_pipeline_v1}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+
+output:
+  BiocStyle::html_document:
+     toc: true
+---
+
+
+```{r setup, echo=FALSE}
+knitr::opts_chunk$set(message=FALSE, warning=FALSE)
+# knitr::opts_chunk$set(echo=T, message=F, warning=F, fig.align='center', out.width='10cm')
+```
+
+
+`PlexedPiper` is the main library for the pipeline. `MSnID` package is a 
+flexible way of handling MS/MS identifications. It handles MS/MS data
+filtering part.
+
+```{r libraries}
+library(PlexedPiper)
+library(MSnID)
+```
+
+
+# Aspects of PNNL DMS
+
+PNNL DMS is based on MS SQL Server. Typically data is organized into data packages according to experiments. Data package that contains data mirroring `PlexedPiperTestData` is number `3442`.
+
+# Prepare MS/MS IDs
+
+## Read the MS-GF+ output
+
+First step is to determine MS-GF+ jobs using the data package number.
+
+
+This simply reads parsed to text output of MS-GF+ search engine. The text files
+are collated together and the resulting `data.frame` used to create MSnID object.
+```{r msms}
+msms <- dms_read_msms_data(3442)
+
+con_str <- sprintf("DRIVER={%s};SERVER=gigasax;DATABASE=dms5;%s", 
+        "FreeTDS", "PORT=1433;UID=dmsreader;PWD=dms4fun;")
+con_str <- "DRIVER={FreeXXXTDS};SERVER=gigasax;DATABASE=dms5;PORT=1433;UID=dmsreader;PWD=dms4fun"
+con_str <- "DRIVER={};SERVER=gigasax;DATABASE=dms5;PORT=1433;UID=dmsreader;PWD=dms4fun"
+library(RODBC)
+con <- odbcDriverConnect(con_str)
+
+library(odbc)
+con_str <- "SERVER=gigasax;DATABASE=dms5;PORT=1433;UID=dmsreader;PWD=dms4fun"
+con <- dbConnect(odbc::odbc(), )
+
+```
+
+
+
+
+
