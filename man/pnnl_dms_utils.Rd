@@ -2,7 +2,6 @@
 % Please edit documentation in R/PNNL_DMS_utils.R
 \name{pnnl_dms_utils}
 \alias{pnnl_dms_utils}
-\alias{get_server_name_for_mtdb}
 \alias{get_dms_job_records}
 \alias{get_tool_output_files_for_job_number}
 \alias{get_output_folder_for_job_and_tool}
@@ -14,8 +13,6 @@
 \alias{get_results_for_single_job.dt}
 \title{Utilities for interacting with PNNL DMS}
 \usage{
-get_server_name_for_mtdb(mtdbName)
-
 get_dms_job_records(jobs = NULL, datasetPttrn = "",
   experimentPttrn = "", toolPttrn = "", parPttrn = "",
   settingsPttrn = "", fastaPttrn = "", proteinOptionsPttrn = "",
@@ -40,13 +37,13 @@ get_results_for_single_job(pathToFile, fileNamePttrn)
 get_results_for_single_job.dt(pathToFile, fileNamePttrn)
 }
 \arguments{
-\item{mtdbName}{(string) name of mass tag database}
-
 \item{jobs}{(integer) DMS job ID}
 
 \item{mostRecent}{(logical) only most recent or all output files}
 
 \item{dataPkgNumber}{(interger) data package id}
+
+\item{mtdbName}{(string) name of mass tag database}
 
 \item{xPttrn}{(string) substrings for names of dataset, experiment, tool, parameter file, settings file, fasta file, protein options, instrument name}
 }
@@ -57,7 +54,6 @@ Works on windows out of the box. To make it work on Mac/Linux FreeTDS needs
 to be installed. Mac/Linux functionality is not well tested.
 
 \itemize{
-\item \code{get_server_name_for_mtdb()}: returns the server name it is stored at given mass tag database
 \item \code{get_dms_job_records()}: returns job records given variety keyword patterns
 \item \code{get_tool_output_files_for_job_number()}: returns the output of the tool given tool name and file pattern
 \item \code{get_output_folder_for_job_and_tool()}: returns the path given job id and tool name

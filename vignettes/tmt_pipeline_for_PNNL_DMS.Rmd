@@ -47,14 +47,21 @@ msms <- dms_read_msms_data(3442)
 
 con_str <- sprintf("DRIVER={%s};SERVER=gigasax;DATABASE=dms5;%s", 
         "FreeTDS", "PORT=1433;UID=dmsreader;PWD=dms4fun;")
-con_str <- "DRIVER={FreeXXXTDS};SERVER=gigasax;DATABASE=dms5;PORT=1433;UID=dmsreader;PWD=dms4fun"
+con_str <- "DRIVER={FreeTDS};SERVER=gigasax;DATABASE=dms5;PORT=1433;UID=dmsreader;PWD=dms4fun"
 con_str <- "DRIVER={};SERVER=gigasax;DATABASE=dms5;PORT=1433;UID=dmsreader;PWD=dms4fun"
 library(RODBC)
 con <- odbcDriverConnect(con_str)
 
 library(odbc)
-con_str <- "SERVER=gigasax;DATABASE=dms5;PORT=1433;UID=dmsreader;PWD=dms4fun"
-con <- dbConnect(odbc::odbc(), )
+con_str <- "DRIVER={FreeTDS};SERVER=gigasax;DATABASE=dms5;PORT=1433;UID=dmsreader;PWD=dms4fun"
+con <- dbConnect(odbc::odbc(), .connection_string=con_str)
+con <- dbConnect(odbc::odbc(), .connection_string=con_str)
+
+
+strSQL = sprintf("\n                    SELECT *\n                    FROM V_Mage_Data_Package_Analysis_Jobs\n                    WHERE Data_Package_ID = %s", 
+        3442)
+jr <- dbSendQuery(con, strSQL, stringsAsFactors = FALSE)
+stuff <- dbFetch(jr)
 
 ```
 
