@@ -16,9 +16,13 @@
 #' @importFrom Biostrings readAAStringSet width writeXStringSet
 #' @importFrom AnnotationHub AnnotationHub query
 #' @importFrom AnnotationDbi select
-#' @importFrom dplyr bind_cols filter inner_join slice pull
+#' @importFrom dplyr bind_cols filter inner_join slice pull arrange
 #' @importFrom tools file_path_sans_ext file_ext
-#' @export remap_accessions_refseq_to_gene_fasta
+#' @importFrom tibble tibble
+#' @importFrom tools file_path_sans_ext
+#'
+#' @name remap_accessions_fasta
+#'
 #' @examples
 #' path_to_FASTA <- system.file("extdata/Rattus_norvegicus_NCBI_RefSeq_2018-04-10.fasta.gz", package = "PlexedPiperTestData")
 #' temp_work_dir <- tempdir() # can be set to "." or getwd(), if done carefully
@@ -29,6 +33,9 @@
 #' path_to_new_FASTA <- remap_accessions_refseq_to_gene_fasta(path_to_FASTA,"Rattus norvegicus")
 #' readAAStringSet(path_to_new_FASTA) # gene IDs
 
+
+#' @export
+#' @rdname remap_accessions_refseq_to_gene_fasta
 remap_accessions_refseq_to_gene_fasta <- function(path_to_FASTA,
                                             organism_name,
                                             conversion_table){
@@ -79,4 +86,41 @@ remap_accessions_refseq_to_gene_fasta <- function(path_to_FASTA,
    writeXStringSet(mySequences, path_to_FASTA_gene, compress = is_compressed)
    return(path_to_FASTA_gene)
 }
+
+
+
+
+#' @export
+#' @rdname remap_accessions_uniprot_to_gene_fasta
+remap_accessions_uniprot_to_gene_fasta <- function(path_to_FASTA){
+
+   is_compressed <- FALSE
+   if(grepl("[.]gz$", path_to_FASTA)){
+      is_compressed <- TRUE
+   }else if(grepl("[.](bz2|xz|zip)$", path_to_FASTA)){
+      stop("The only supported compression is gzip!")
+   }
+
+   mySequences <- readAAStringSet(path_to_FASTA)
+   # subsetting to only with known genes
+   mySequences <- mySequences[grepl("GN=",names(mySequences))]
+   genes <- sub(".*GN=([^ ]*).*","\\1",names(mySequences))
+
+   # retain only the longest form per gene
+   top_len <- tibble(genes, len=width(mySequences), ind=seq_along(genes)) %>%
+      group_by(genes) %>%
+      dplyr::slice(which.max(len)) %>%
+      ungroup() %>%
+      arrange(ind)
+
+   mySequences <- mySequences[top_len$ind]
+   names(mySequences) <- top_len$genes
+
+   file_no_ext <- file_path_sans_ext(path_to_FASTA, compression=TRUE)
+   ext <- sub(file_no_ext, "", path_to_FASTA)
+   path_to_FASTA_gene <- paste0(file_no_ext, '_gene', ext)
+   writeXStringSet(mySequences, path_to_FASTA_gene, compress = is_compressed)
+   return(path_to_FASTA_gene)
+}
+
 

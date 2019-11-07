@@ -1,0 +1,82 @@
+---
+title: |
+    Suggested TMT processing pipeline for PNNL DMS.
+
+vignette: >
+  %\VignetteIndexEntry{tmt_pipeline_v1}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+
+output:
+  BiocStyle::html_document:
+     toc: true
+---
+
+
+```{r setup, echo=FALSE}
+knitr::opts_chunk$set(message=FALSE, warning=FALSE)
+# knitr::opts_chunk$set(echo=T, message=F, warning=F, fig.align='center', out.width='10cm')
+```
+
+
+`PlexedPiper` is the main library for the pipeline. `MSnID` package is a 
+flexible way of handling MS/MS identifications. It handles MS/MS data
+filtering part.
+
+```{r libraries, eval=FALSE}
+library(PlexedPiper)
+library(MSnID)
+library(tidyverse)
+```
+
+
+# Aspects of PNNL DMS
+
+PNNL DMS is based on MS SQL Server. Typically data is organized into data packages according to experiments. Data package that contains data mirroring `PlexedPiperTestData` is number `3442`.
+
+# Prepare MS/MS IDs
+
+## Read the MS-GF+ output
+
+First step is to determine MS-GF+ jobs using the data package number.
+
+
+This simply reads parsed to text output of MS-GF+ search engine. The text files
+are collated together and the resulting `data.frame` used to create MSnID object.
+```{r msms, eval=FALSE}
+# phospho
+msnid <- read_msms_data_from_DMS(3432)
+ascore <- get_AScore_results(3432)
+msnid <- best_PTM_location_by_ascore(msnid, ascore)
+msnid <- filter_msgf_data_peptide_level(msnid, 0.01)
+msnid <- remap_accessions_uniprot_to_gene(msnid, organism_name="Homo sapiens")
+
+path_to_FASTA <- path_to_FASTA_used_by_DMS(3432)
+path_to_FASTA_gene <- remap_accessions_uniprot_to_gene_fasta(path_to_FASTA)
+
+
+# todo
+msnid <- compute_num_peptides_per_1000aa(msnid, path_to_FASTA_gene)
+
+
+
+show(msnid)
+msnid <- filter_msgf_data_protein_level(msnid, 0.01)
+show(msnid)
+
+# msnid <- infer_parsimonious_accessions(msnid, unique_only=TRUE)
+show(msnid)
+
+msnid <- apply_filter(msnid, "!isDecoy")
+
+masic_data <- read_masic_data_from_DMS(3432, interference_score = T)
+
+
+
+
+```
+
+
+
+
+

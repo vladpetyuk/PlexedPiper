@@ -11,6 +11,7 @@
 \alias{get_results_for_multiple_jobs.dt}
 \alias{get_results_for_single_job}
 \alias{get_results_for_single_job.dt}
+\alias{path_to_FASTA_used_by_DMS}
 \title{Utilities for interacting with PNNL DMS}
 \usage{
 get_dms_job_records(jobs = NULL, datasetPttrn = "",
@@ -35,6 +36,8 @@ get_results_for_multiple_jobs.dt(jobRecords)
 get_results_for_single_job(pathToFile, fileNamePttrn)
 
 get_results_for_single_job.dt(pathToFile, fileNamePttrn)
+
+path_to_FASTA_used_by_DMS(data_package_number)
 }
 \arguments{
 \item{jobs}{(integer) DMS job ID}

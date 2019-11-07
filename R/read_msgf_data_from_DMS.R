@@ -6,12 +6,12 @@
 #' @importFrom MSnID MSnID
 #' @importMethodsFrom MSnID psms<-
 #' @examples
-#' msnid <- read_msgf_data(3442)
+#' msnid <- read_msgf_data_from_DMS(3442)
 #' print(msnid)
 #' head(MSnID::psms(msnid))
 
 #' @export
-dms_read_msms_data <- function(DataPkgNumber){
+read_msms_data_from_DMS <- function(DataPkgNumber){
   msnid <- MSnID(".")
   # accession -> Protein
   # calculatedMassToCharge -> f(MH, Charge) MSnID:::.PROTON_MASS

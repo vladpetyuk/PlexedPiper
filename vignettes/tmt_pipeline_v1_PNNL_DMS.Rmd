@@ -1,6 +1,7 @@
 ---
 title: |
     Suggested TMT processing pipeline. Variant 1.
+    Version for PNNL DMS.
 
 vignette: >
   %\VignetteIndexEntry{tmt_pipeline_v1}
@@ -31,24 +32,20 @@ library(MSnID)
 
 # Data source
 
-This pipeline shows how to process TMT data that is processed outside of PNNL DMS.
-This implies that raw files processed by MSGF+ and MASIC tools and the
-processing results are in corresponding directories. For convienience the results
-of MSGF+ and MASIC processing are provided in a companion `PlexedPiperTestData`
-package.
+This pipeline shows how to process TMT data that is processed within PNNL DMS.
+Data in PNNL DMS is organized using MS SQL Server into data packages. The data
+package number matching `PlexedPiperTestData` is 3442. Note, this vignette won't
+compile if there is now access to PNNL DMS.
 
 
 # Prepare MS/MS IDs
 
 ## Read the MS-GF+ output
 
-This simply reads parsed to text output of MS-GF+ search engine. The text files
-are collated together and the resulting `data.frame` used to create MSnID object.
+Fetching MS/MS search results by data package number. The text files are 
+collated together and the resulting `data.frame` used to create MSnID object.
 ```{r msms}
-path_to_MSGF_results <- system.file(
-   "extdata/global/msgf_output",
-   package = "PlexedPiperTestData")
-msnid <- read_msgf_data(path_to_MSGF_results)
+msnid <- read_msms_data_from_DMS(3442)
 show(msnid)
 ```
 
@@ -94,14 +91,10 @@ from RefSeq to gene symbols. This is necessary if we are going to count the
 number of peptide identifications per protein or protein sequence coverage with
 accessions switched from RefSeq to gene symbols.
 ```{r fasta_refseq_2_gene}
-path_to_FASTA <- system.file(
-   "extdata/Rattus_norvegicus_NCBI_RefSeq_2018-04-10.fasta.gz",
-   package = "PlexedPiperTestData")
-temp_dir <- tempdir()
-file.copy(path_to_FASTA, temp_dir)
-path_to_FASTA <- file.path(temp_dir, basename(path_to_FASTA))
+path_to_FASTA <- path_to_FASTA_used_by_DMS(3442)
 path_to_FASTA_gene <- remap_accessions_refseq_to_gene_fasta(
-   path_to_FASTA, organism_name="Rattus norvegicus")
+   path_to_FASTA,
+   organism_name = "Rattus norvegicus")
 ```
 
 
@@ -162,8 +155,7 @@ is due to co-isolated species that have similar elution time and parent ion m/z.
 S/N at reporter level is the metric that computed by Thermo software. 
 
 ```{r read_masic}
-path_to_MASIC_results <- system.file("extdata/global/masic_output", package = "PlexedPiperTestData")
-masic_data <- read_masic_data(path_to_MASIC_results, extra_metrics=TRUE)
+masic_data <- read_masic_data_from_DMS(3442, interference_score=TRUE)
 head(masic_data)
 ```
 
@@ -190,10 +182,13 @@ what is the intended reference channel (or combination of channels). The entire
 study desing captured by three tables - fractions, samples, references.
 
 ## Fractions
-This links dataset to original plex.
+Dataset to fraction assigment can be read from a separate file or inferred from 
+the dataset names. This example shows the latter.
 ```{r read_fractions}
-library(readr)
-fractions <- read_tsv(system.file("extdata/study_design/fractions.txt", package = "PlexedPiperTestData"))
+library(dplyr)
+fractions <- masic_data %>%
+   distinct(Dataset) %>%
+   mutate(PlexID =sub("MoTrPAC_Pilot_TMT_W_(S\\d).*","\\1",Dataset))
 head(fractions)
 ```
 
@@ -202,7 +197,10 @@ This links plex ID, reporter channel with samples. There is a minor difference
 between ReporterAlias and MeasurementName. MeasurementName is the sample name
 that will be finally reported. ReporterAlias is an itermediate between 
 ReporterName and MeasurementName and is used for defining what the reference is.
+There may be a way to query this from DMS. At this point, we'll read the file
+from `PlexedPiperTestData` package.
 ```{r read_samples}
+library(readr)
 samples <- read_tsv(system.file("extdata/study_design/samples.txt", package = "PlexedPiperTestData"))
 head(samples,10)
 ```

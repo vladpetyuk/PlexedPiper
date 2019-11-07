@@ -27,6 +27,8 @@
 #' @param mostRecent (logical) only most recent or all output files
 #'
 #' @importFrom odbc odbc dbConnect dbSendQuery dbFetch dbClearResult dbDisconnect
+#' @importFrom dplyr rename
+#' @importFrom readr read_tsv
 #'
 # '@importFrom data.table
 #'
@@ -229,32 +231,36 @@ get_AScore_results <- function(dataPkgNumber){
    dbDisconnect(con)
 
    # in case Mac OS
-   local_folder <- "~/temp_AScoreResults"
-   if (file.exists(local_folder)){
-      # handling in case folder exists
-   } else {
+   if(.Platform$OS.type == "unix"){
+      local_folder <- "~/temp_AScoreResults"
+      if(file.exists(local_folder)){
+         unlink(local_folder, recursive = T)
+      }
       dir.create(local_folder)
+      remote_folder <- gsub("\\\\","/",job['Folder'])
+      mount_cmd <- sprintf("mount -t smbfs %s %s", remote_folder, local_folder)
+      system(mount_cmd)
+      # read the stuff
+      ascores <- read_tsv(
+         file.path(local_folder,"Concatenated_msgfplus_syn_ascore.txt"))
+      job_to_dataset_map <- read_tsv(
+         file.path(local_folder,"Job_to_Dataset_Map.txt"))
+      # end of read the stuff
+      umount_cmd <- sprintf("umount %s", local_folder)
+      system(umount_cmd)
+      unlink(local_folder, recursive = T)
+   }else if(.Platform$OS.type == "windows"){
+      # in case Windows
+      ascores <- read_tsv(
+         file.path(job['Folder'],"Concatenated_msgfplus_syn_ascore.txt"))
+      job_to_dataset_map <- read_tsv(
+         file.path(job['Folder'],"Job_to_Dataset_Map.txt"))
+   }else{
+      stop("unknown OS")
    }
-   remote_folder <- gsub("\\\\","/",job['Folder'])
-   mount_cmd <- sprintf("mount -t smbfs %s %s", remote_folder, local_folder)
-   system(mount_cmd)
-   # read the stuff
-   ascores <- read_tsv(
-      file.path(local_folder,"Concatenated_msgfplus_syn_ascore.txt"))
-   job_to_dataset_map <- read_tsv(
-      file.path(local_folder,"Job_to_Dataset_Map.txt"))
-   # end of read the stuff
-   umount_cmd <- sprintf("umount %s", local_folder)
-   system(umount_cmd)
-   unlink(local_folder, recursive = T)
 
-   # in case Windows
-   ascores <- read_tsv(
-      file.path(job['Folder'],"Concatenated_msgfplus_syn_ascore.txt"))
-   job_to_dataset_map <- read_tsv(
-      file.path(job['Folder'],"Job_to_Dataset_Map.txt"))
-
-   res <- inner_join(ascores, job_to_dataset_map)
+   res <- inner_join(ascores, job_to_dataset_map) %>%
+      rename(spectrumFile = Dataset)
 
    return(res)
 }
@@ -380,17 +386,14 @@ get_results_for_single_job.dt <- function(pathToFile, fileNamePttrn){
    pathToFile <- as.character(pathToFile)
    if(.Platform$OS.type == "unix"){
       local_folder <- "~/temp_msms_results"
-      if (file.exists(local_folder)){
-         # handling in case folder exists
+      if(file.exists(local_folder)){
          unlink(local_folder, recursive = T)
-      }else{
-         dir.create(local_folder)
-         remote_folder <- gsub("\\\\","/",pathToFile)
-         mount_cmd <- sprintf("mount -t smbfs %s %s", remote_folder, local_folder)
-         system(mount_cmd)
       }
+      dir.create(local_folder)
+      remote_folder <- gsub("\\\\","/",pathToFile)
+      mount_cmd <- sprintf("mount -t smbfs %s %s", remote_folder, local_folder)
+      system(mount_cmd)
    }else if(.Platform$OS.type == "windows"){
-      # pass
       local_folder <- pathToFile
    }else{
       stop("Unknown OS type.")
@@ -420,3 +423,63 @@ get_results_for_single_job.dt <- function(pathToFile, fileNamePttrn){
 
 
 
+#' @export
+#' @rdname pnnl_dms_utils
+# Returns path to FASTA. Note FASTA will be in temp directory.
+path_to_FASTA_used_by_DMS <- function(data_package_number){
+
+   # make sure it was the same fasta used for all msgf jobs
+   # at this point this works only with one data package at a time
+   jobRecords <- get_job_records_by_dataset_package(data_package_number)
+   jobRecords <- jobRecords[grepl("MSGFPlus", jobRecords$Tool),]
+   if(length(unique(jobRecords$`Organism DB`)) != 1){
+      stop("There should be exactly one FASTA file per data package!")
+   }
+
+   strSQL <- sprintf("Select [Organism DB],
+                             [Organism DB Storage Path]
+                     From V_Analysis_Job_Detail_Report_2
+                     Where JobNum = %s", jobRecords$Job[1])
+
+   con_str <- sprintf("DRIVER={%s};SERVER=gigasax;DATABASE=dms5;%s",
+                      "FreeTDS",
+                      "PORT=1433;UID=dmsreader;PWD=dms4fun;")
+   con <- dbConnect(odbc(), .connection_string=con_str)
+   qry <- dbSendQuery(con, strSQL)
+   res <- dbFetch(qry)
+   dbClearResult(qry)
+   dbDisconnect(con)
+
+   temp_dir <- tempdir()
+
+   # OS-specific download
+   if(.Platform$OS.type == "unix"){
+      local_folder <- "~/temp_fasta"
+      if(file.exists(local_folder)){
+         unlink(local_folder, recursive = T)
+      }
+      dir.create(local_folder)
+      remote_folder <- gsub("\\\\","/",res['Organism DB Storage Path'])
+      mount_cmd <- sprintf("mount -t smbfs %s %s", remote_folder, local_folder)
+      system(mount_cmd)
+      # copy file
+      path_to_FASTA <- file.path(local_folder, res['Organism DB'])
+      file.copy(path_to_FASTA, temp_dir)
+      # end of copy file
+      umount_cmd <- sprintf("umount %s", local_folder)
+      system(umount_cmd)
+      unlink(local_folder, recursive = T)
+   }else if(.Platform$OS.type == "windows"){
+      # in case of Windows
+      path_to_FASTA <- file.path(res['Organism DB Storage Path'],
+                                 res['Organism DB'])
+      file.copy(path_to_FASTA, temp_dir)
+   }else{
+      stop("unknown OS")
+   }
+
+   path_to_FASTA <- file.path(temp_dir, res['Organism DB'])
+
+   return(path_to_FASTA)
+
+}
