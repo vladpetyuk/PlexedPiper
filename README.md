@@ -20,13 +20,21 @@ vignette("tmt_pipeline_v1")
 Compantion R package with test data based on MoTrPAC pilot study is available
 here [PlexedPiperTestData](https://github.com/vladpetyuk/PlexedPiperTestData)
 
-Note, if decided to run using docker, add this into `Dockerfile`:
-```{bash}
-RUN apt-get install -y --no-install-recommends \
- unixodbc unixodbc-dev freetds-dev freetds-bin tdsodbc \
+Note, if decided to run using docker, you need a few system libraries 
+to make package run. An example `Dockerfile` looks like this:
+```{yaml}
+FROM rocker/tidyverse:3.6.1
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends \
+ unixodbc \
+ unixodbc-dev \
+ freetds-dev \
+ freetds-bin \
+ tdsodbc \
  libcurl4-openssl-dev \
  libxml2-dev \
  libnetcdf-dev \
  libssl-dev
+RUN R -e 'remotes::install_github("vladpetyuk/PlexedPiper", build_vignettes = TRUE")'
 ```
 
