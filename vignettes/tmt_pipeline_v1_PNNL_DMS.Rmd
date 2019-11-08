@@ -21,8 +21,11 @@ knitr::opts_chunk$set(message=FALSE, warning=FALSE)
 
 
 ```{r test_connection}
-knitr::opts_chunk$set(eval = FALSE)
 # if there is no connection to PNNL DMS, vignette is not compiled
+if(!is_PNNL_DMS_connection_successful()){
+   message("There is no connection to PNNL DMS. This code in this vignette won't be evaluated.")
+   knitr::opts_chunk$set(eval = FALSE)
+}
 ```
 
 

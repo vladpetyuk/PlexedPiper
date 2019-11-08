@@ -67,6 +67,28 @@ get_auth <- function(){
 
 
 #' @export
+#' @rdname is_PNNL_DMS_connection_successful
+is_PNNL_DMS_connection_successful <- function()
+{
+   con_str <- sprintf("DRIVER={%s};SERVER=gigasax;DATABASE=dms5;%s",
+                      get_driver(),
+                      get_auth())
+
+   con_test_res <- try(con <- dbConnect(odbc(), .connection_string=con_str),
+                       TRUE)
+   if(inherits(con_test_res, "try-error")){
+      # no connection
+      return(FALSE)
+   }else{
+      # connection present
+      dbDisconnect(con)
+      return(TRUE)
+   }
+}
+
+
+
+#' @export
 #' @rdname pnnl_dms_utils
 get_dms_job_records <- function(
    jobs = NULL,
