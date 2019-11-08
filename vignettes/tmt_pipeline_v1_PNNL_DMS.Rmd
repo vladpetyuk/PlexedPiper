@@ -20,6 +20,12 @@ knitr::opts_chunk$set(message=FALSE, warning=FALSE)
 ```
 
 
+```{r test_connection}
+knitr::opts_chunk$set(eval = FALSE)
+# if there is no connection to PNNL DMS, vignette is not compiled
+```
+
+
 `PlexedPiper` is the main library for the pipeline. `MSnID` package is a 
 flexible way of handling MS/MS identifications. It handles MS/MS data
 filtering part.
