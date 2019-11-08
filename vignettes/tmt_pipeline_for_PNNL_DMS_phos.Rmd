@@ -1,9 +1,9 @@
 ---
 title: |
-    Suggested TMT processing pipeline for PNNL DMS.
+    Suggested TMT processing pipeline for PNNL DMS phospho data.
 
 vignette: >
-  %\VignetteIndexEntry{tmt_pipeline_v1}
+  %\VignetteIndexEntry{tmt_pipeline_v1_PNNL_DMS_phospho}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 
