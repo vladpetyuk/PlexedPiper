@@ -163,7 +163,7 @@ S/N at reporter level is the metric that computed by Thermo software.
 
 ```{r read_masic}
 path_to_MASIC_results <- system.file("extdata/global/masic_output", package = "PlexedPiperTestData")
-masic_data <- read_masic_data(path_to_MASIC_results, extra_metrics=TRUE)
+masic_data <- read_masic_data(path_to_MASIC_results, interference_score=TRUE)
 head(masic_data)
 ```
 
