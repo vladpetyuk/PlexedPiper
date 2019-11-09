@@ -2,6 +2,7 @@
 % Please edit documentation in R/PNNL_DMS_utils.R
 \name{pnnl_dms_utils}
 \alias{pnnl_dms_utils}
+\alias{is_PNNL_DMS_connection_successful}
 \alias{get_dms_job_records}
 \alias{get_tool_output_files_for_job_number}
 \alias{get_output_folder_for_job_and_tool}
@@ -14,6 +15,8 @@
 \alias{path_to_FASTA_used_by_DMS}
 \title{Utilities for interacting with PNNL DMS}
 \usage{
+is_PNNL_DMS_connection_successful()
+
 get_dms_job_records(jobs = NULL, datasetPttrn = "",
   experimentPttrn = "", toolPttrn = "", parPttrn = "",
   settingsPttrn = "", fastaPttrn = "", proteinOptionsPttrn = "",
