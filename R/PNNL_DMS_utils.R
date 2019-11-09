@@ -67,7 +67,7 @@ get_auth <- function(){
 
 
 #' @export
-#' @rdname is_PNNL_DMS_connection_successful
+#' @rdname pnnl_dms_utils
 is_PNNL_DMS_connection_successful <- function()
 {
    con_str <- sprintf("DRIVER={%s};SERVER=gigasax;DATABASE=dms5;%s",
