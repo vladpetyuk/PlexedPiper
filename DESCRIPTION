@@ -27,7 +27,8 @@ Imports:
    tools,
    knitr,
    rmarkdown,
-   readr
+   readr,
+   Rcpp < 1.0.3
 Remotes: vladpetyuk/PlexedPiperTestData
 biocViews:
 VignetteBuilder: knitr
