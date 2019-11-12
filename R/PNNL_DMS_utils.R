@@ -464,8 +464,9 @@ path_to_FASTA_used_by_DMS <- function(data_package_number){
                      Where JobNum = %s", jobRecords$Job[1])
 
    con_str <- sprintf("DRIVER={%s};SERVER=gigasax;DATABASE=dms5;%s",
-                      "FreeTDS",
-                      "PORT=1433;UID=dmsreader;PWD=dms4fun;")
+                      get_driver(),
+                      get_auth())
+
    con <- dbConnect(odbc(), .connection_string=con_str)
    qry <- dbSendQuery(con, strSQL)
    res <- dbFetch(qry)
