@@ -252,6 +252,11 @@ get_AScore_results <- function(dataPkgNumber){
    dbClearResult(qry)
    dbDisconnect(con)
 
+   if(nrow(job) > 1){
+      warning("Multiple Ascore jobs detected. Selecting the last one.")
+      job <- tail(job, 1)
+   }
+
    # in case Mac OS
    if(.Platform$OS.type == "unix"){
       local_folder <- "~/temp_AScoreResults"
