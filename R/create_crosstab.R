@@ -56,12 +56,14 @@ create_crosstab <- function(msnid,
                             references){
 
    # merges MS/MS IDs with reporter intensities
-   quant_data <- link_msms_and_reporter_intensities(msnid, reporter_intensities)
+   quant_data <- link_msms_and_reporter_intensities(msnid,
+                                                    reporter_intensities,
+                                                    aggregation_level)
    # aggregates reporter intensities to a given level
    quant_data <- aggregate_reporters(quant_data, fractions, aggregation_level)
    # taking ratios of reporter ion intensities to whatever the reference is
-   out <- converting_to_relative_to_reference(quant_data, 
-                                              samples, 
+   out <- converting_to_relative_to_reference(quant_data,
+                                              samples,
                                               references)
    return(out)
 }
@@ -70,11 +72,13 @@ create_crosstab <- function(msnid,
 
 
 # no export
-link_msms_and_reporter_intensities <- function(msnid, reporter_intensities)
+link_msms_and_reporter_intensities <- function(msnid,
+                                               reporter_intensities,
+                                               aggregation_level)
 {
    # prepare MS/MS data
    msms <- data.table(psms(msnid))
-   msms <- msms[,.(Dataset, Scan, peptide, accession)]
+   msms <- cbind(msms[,.(Dataset, Scan)], msms[,..aggregation_level])
    setkey(msms, Dataset, Scan)
 
    # prepare reporter intensities data
@@ -113,8 +117,8 @@ aggregate_reporters <- function(quant_data, fractions, aggregation_level)
 }
 
 # no export
-converting_to_relative_to_reference <- function(quant_data, 
-                                                samples, 
+converting_to_relative_to_reference <- function(quant_data,
+                                                samples,
                                                 references)
 {
 
@@ -128,18 +132,18 @@ converting_to_relative_to_reference <- function(quant_data,
 
    # preparing sample info
    samples <- data.table(samples)
-   
+
    reporter_ions <- unique(quant_data$ReporterIon)
-   # loop through list of reporter ion converter tables, find which table 
+   # loop through list of reporter ion converter tables, find which table
    # matches all ions
    for (i in seq_along(reporter_converter)) {
-     if (setequal(as.character(reporter_ions), 
+     if (setequal(as.character(reporter_ions),
                                     reporter_converter[[i]]$ReporterIon)) {
        converter <- data.table(reporter_converter[[i]])
        break
      }
    }
-   
+
    if (!exists("converter")) {
      stop("No reporter ion converter tables match the reporter ions in MASIC data")
    }
@@ -174,10 +178,10 @@ converting_to_relative_to_reference <- function(quant_data,
       if (is.factor(ref_i$Reference)) {
         ref_i$Reference <- as.character(ref_i$Reference)
       }
-      
+
       ref_values <- with(quant_data_i_w, eval(parse(text=ref_i$Reference)))
-      
-      
+
+
       # take the ratios over the reference
       quant_data_i_w <- quant_data_i_w/ref_values
 
