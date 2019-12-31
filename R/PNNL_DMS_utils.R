@@ -43,7 +43,8 @@ tool2suffix <- list("MSGFPlus"="_msgfplus_syn.txt",
                     "MSGFPlus_MzML"="_msgfplus_syn.txt",
                     "MSGFPlus_DTARefinery"="_msgfplus_syn.txt",
                     "MSGFDB_DTARefinery"="_msgfdb_syn.txt",
-                    "MASIC_Finnigan"="_ReporterIons.txt")
+                    "MASIC_Finnigan"="_ReporterIons.txt",
+                    "TopPIC" = "_TopPIC_PrSMs.txt")
 
 get_driver <- function(){
    if(.Platform$OS.type == "unix"){
