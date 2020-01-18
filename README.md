@@ -20,6 +20,8 @@ vignette("tmt_pipeline_v1")
 Compantion R package with test data based on MoTrPAC pilot study is available
 here [PlexedPiperTestData](https://github.com/vladpetyuk/PlexedPiperTestData)
 
+## Docker/Linux installation
+
 Note, if decided to run using docker, you need a few system libraries 
 to make package run. An example `Dockerfile` looks like this:
 ```{yaml}
@@ -38,3 +40,18 @@ RUN apt-get update \
 RUN R -e 'remotes::install_github("vladpetyuk/PlexedPiper", build_vignettes = TRUE)'
 ```
 
+## MacOS installation
+
+On MacOS install Homebrew
+```{shell}
+brew install unixodbc
+brew install freetds
+```
+Note, the `--with-unixodbc` option in freetds installation is deprecated.
+
+Create `~/.odbcinst.ini` file and add
+```{yaml}
+[FreeTDS]
+Driver = /usr/local/lib/libtdsodbc.so
+```
+If location of `libtdsodbc.so` differs, use proper location.
