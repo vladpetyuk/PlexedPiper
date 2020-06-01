@@ -2,13 +2,14 @@
 
 R package used at PNNL for processing isobaric labeling (e.g. TMT) proteomics
 data. The key inputs are:
-
-* MS/MS identifications from MS-GF+ search engine
-* Reporter ion intensities extracted usign MASIC tool
+* MS/MS identifications from the [MS-GF+ search engine](https://github.com/MSGFPlus/msgfplus)
+* Reporter ion intensities extracted using [MASIC](https://github.com/pnnl-comp-mass-spec/MASIC)
 * Tables outlying study design
    * table linking dataset to plexes
    * table linking reporter channels with sample names
    * table identifying reference within each plex
+
+## R Installation and Usage
 
 ```{r}
 if(!require("remotes", quietly = T)) install.packages("remotes")
@@ -17,13 +18,17 @@ library(PlexedPiper)
 vignette("tmt_pipeline_v1")
 ```
 
-Compantion R package with test data based on MoTrPAC pilot study is available
-here [PlexedPiperTestData](https://github.com/vladpetyuk/PlexedPiperTestData)
+### Example Data
+
+A companion R package with test data based on the MoTrPAC pilot study is available
+here
+* [PlexedPiperTestData](https://github.com/vladpetyuk/PlexedPiperTestData)
 
 ## Docker/Linux installation
 
-Note, if decided to run using docker, you need a few system libraries 
-to make package run. An example `Dockerfile` looks like this:
+PlexedPiper can be run within a [Docker Container](https://www.docker.com/resources/what-container)
+* This example `Dockerfile` shows the required system libraries, starting with the base [rocker/TidyVerse](https://hub.docker.com/r/rocker/tidyverse/dockerfile) image
+
 ```{yaml}
 FROM rocker/tidyverse:3.6.1
 RUN apt-get update \
@@ -42,7 +47,8 @@ RUN R -e 'remotes::install_github("vladpetyuk/PlexedPiper", build_vignettes = TR
 
 ## MacOS installation
 
-On MacOS install Homebrew
+On MacOS, install [Homebrew](https://brew.sh/), then use
+
 ```{shell}
 brew install unixodbc
 brew install freetds
@@ -54,4 +60,4 @@ Create `~/.odbcinst.ini` file and add
 [FreeTDS]
 Driver = /usr/local/lib/libtdsodbc.so
 ```
-If location of `libtdsodbc.so` differs, use proper location.
+If your location of `libtdsodbc.so` differs, use the proper location.
