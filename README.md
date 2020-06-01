@@ -11,7 +11,7 @@ data. The key inputs are:
 
 ## R Installation and Usage
 
-```{r}
+```R
 if(!require("remotes", quietly = T)) install.packages("remotes")
 remotes::install_github("vladpetyuk/PlexedPiper", build_vignettes = TRUE)
 library(PlexedPiper)
@@ -29,7 +29,7 @@ here
 PlexedPiper can be run within a [Docker Container](https://www.docker.com/resources/what-container)
 * This example `Dockerfile` shows the required system libraries, starting with the base [rocker/TidyVerse](https://hub.docker.com/r/rocker/tidyverse/dockerfile) image
 
-```{yaml}
+```Dockerfile
 FROM rocker/tidyverse:3.6.1
 RUN apt-get update \
  && apt-get install -y --no-install-recommends \
@@ -49,14 +49,14 @@ RUN R -e 'remotes::install_github("vladpetyuk/PlexedPiper", build_vignettes = TR
 
 On MacOS, install [Homebrew](https://brew.sh/), then use
 
-```{shell}
+```Shell
 brew install unixodbc
 brew install freetds
 ```
 Note, the `--with-unixodbc` option in freetds installation is deprecated.
 
 Create `~/.odbcinst.ini` file and add
-```{yaml}
+```INI
 [FreeTDS]
 Driver = /usr/local/lib/libtdsodbc.so
 ```
