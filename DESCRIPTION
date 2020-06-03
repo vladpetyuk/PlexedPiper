@@ -29,7 +29,6 @@ Imports:
    rmarkdown,
    readr,
    Rcpp (<= 1.0.2)
-Remotes: vladpetyuk/PlexedPiperTestData
-Remotes: vladpetyuk/MSnID
+Remotes: github::vladpetyuk/PlexedPiperTestData, github::vladpetyuk/MSnID
 biocViews:
 VignetteBuilder: knitr
