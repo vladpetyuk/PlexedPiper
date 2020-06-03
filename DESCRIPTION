@@ -30,5 +30,6 @@ Imports:
    readr,
    Rcpp (<= 1.0.2)
 Remotes: vladpetyuk/PlexedPiperTestData
+Remotes: vladpetyuk/MSnID
 biocViews:
 VignetteBuilder: knitr
