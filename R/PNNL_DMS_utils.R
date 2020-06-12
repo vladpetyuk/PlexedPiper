@@ -436,7 +436,8 @@ get_results_for_single_job.dt <- function(pathToFile, fileNamePttrn){
    if(length(pathToFile) > 1){
       stop("ambiguous results files")
    }
-   results <- read_tsv(pathToFile)
+
+   results <- read_tsv(pathToFile, col_types=readr::cols(), progress=FALSE)
 
    if(.Platform$OS.type == "unix"){
       umount_cmd <- sprintf("umount %s", local_folder)
