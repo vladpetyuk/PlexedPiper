@@ -311,3 +311,101 @@ get_results_for_single_job.dt = function(pathToFile, fileNamePttrn ){
    return(out)
 }
 
+#' @export
+#' @rdname pnnl_dms_utils
+get_study_design_by_dataset_package <- function(dataPkgNumber) {
+   
+   con_str <- sprintf("DRIVER={%s};SERVER=gigasax;DATABASE=DMS_Data_Package;%s",
+                      get_driver(),
+                      get_auth())
+   con <- dbConnect(odbc(), .connection_string=con_str)
+   
+   ## fetch table with path to DataPackage
+   strSQL <- sprintf("
+                    SELECT *
+                    FROM V_Data_Package_Detail_Report
+                    WHERE ID = %s",
+                     dataPkgNumber)
+   qry <- dbSendQuery(con, strSQL)
+   dataPkgReport <- dbFetch(qry)
+   dbClearResult(qry)
+   
+   if(.Platform$OS.type == "unix"){
+      local_folder <- "~/temp_msms_results"
+      if(file.exists(local_folder)){
+         unlink(local_folder, recursive = T)
+      }
+      dir.create(local_folder)
+      
+      remote_folder <- gsub("\\\\","/", dataPkgReport$`Share Path`)
+      mount_cmd <- sprintf("mount -t smbfs %s %s", remote_folder, local_folder)
+      system(mount_cmd)
+   }else if(.Platform$OS.type == "windows"){
+      local_folder <- pathToFile
+   }else{
+      stop("Unknown OS type.")
+   }
+   
+   ## fetch samples.txt
+   pathToFile <- list.files(path=local_folder,
+                            pattern="^samples.txt$",
+                            full.names=T)
+   if(length(pathToFile) == 0){
+      stop("Could not find 'samples.txt' file in DMS Data Package folder.")
+   }
+   
+   samples <- readr::read_tsv(pathToFile, col_types=readr::cols(), progress=FALSE)
+   if (!setequal(colnames(samples), c("PlexID",
+                                      "QuantBlock",
+                                      "ReporterAlias",
+                                      "ReporterName",
+                                      "MeasurementName"))) {
+      stop("There are incorrect column names or missing columns in the 'samples'
+         study design table.")
+   }
+   
+   ## fetch fractions.txt
+   pathToFile <- list.files(path=local_folder,
+                            pattern="^fractions.txt$",
+                            full.names=T)
+   if (length(pathToFile) == 0){
+      stop("Could not find 'fractions.txt' file in DMS Data Package folder.")
+   }
+   
+   
+   fractions <- readr::read_tsv(pathToFile, col_types=readr::cols(), progress=FALSE)
+   if (!setequal(colnames(fractions), c("PlexID",
+                                        "Dataset"))) {
+      stop("There are incorrect column names or missing columns in the 'fractions'
+         study design table.")
+   }
+   
+   ## fetch references.txt
+   pathToFile <- list.files(path=local_folder,
+                            pattern="^references.txt$",
+                            full.names=T)
+   if(length(pathToFile) == 0){
+      stop("Could not find 'references.txt' file in DMS Data Package folder.")
+   }
+   
+   references <- readr::read_tsv(pathToFile, col_types=readr::cols(), progress=FALSE)
+   if (!setequal(colnames(references), c("PlexID",
+                                         "QuantBlock",
+                                         "Reference"))) {
+      stop("There are incorrect column names or missing columns in the 'references'
+         study design table.")
+   }
+   
+   
+   
+   if(.Platform$OS.type == "unix"){
+      umount_cmd <- sprintf("umount %s", local_folder)
+      system(umount_cmd)
+      unlink(local_folder, recursive = T)
+   }
+   
+   study_des <- list(samples = samples, 
+                     fractions = fractions, 
+                     references = references)
+   return(study_des)
+}
