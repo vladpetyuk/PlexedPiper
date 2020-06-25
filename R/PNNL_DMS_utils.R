@@ -348,7 +348,7 @@ get_study_design_by_dataset_package <- function(dataPkgNumber) {
    
    ## fetch samples.txt
    pathToFile <- list.files(path=local_folder,
-                            pattern="^samples.txt$",
+                            pattern="^samples\\.txt$",
                             full.names=T)
    if(length(pathToFile) == 0){
       stop("Could not find 'samples.txt' file in DMS Data Package folder.")
@@ -366,7 +366,7 @@ get_study_design_by_dataset_package <- function(dataPkgNumber) {
    
    ## fetch fractions.txt
    pathToFile <- list.files(path=local_folder,
-                            pattern="^fractions.txt$",
+                            pattern="^fractions\\.txt$",
                             full.names=T)
    if (length(pathToFile) == 0){
       stop("Could not find 'fractions.txt' file in DMS Data Package folder.")
@@ -382,7 +382,7 @@ get_study_design_by_dataset_package <- function(dataPkgNumber) {
    
    ## fetch references.txt
    pathToFile <- list.files(path=local_folder,
-                            pattern="^references.txt$",
+                            pattern="^references\\.txt$",
                             full.names=T)
    if(length(pathToFile) == 0){
       stop("Could not find 'references.txt' file in DMS Data Package folder.")
