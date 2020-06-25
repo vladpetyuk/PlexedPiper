@@ -360,8 +360,12 @@ get_study_design_by_dataset_package <- function(dataPkgNumber) {
                                       "ReporterAlias",
                                       "ReporterName",
                                       "MeasurementName"))) {
-      stop("There are incorrect column names or missing columns in the 'samples'
-         study design table.")
+      stop(paste0("Please check the required columns in the 'samples.txt' file.\n",
+                  paste0(c("PlexID",
+                           "QuantBlock",
+                           "ReporterAlias",
+                           "ReporterName",
+                           "MeasurementName"), collapse = "\n")))
    }
    
    ## fetch fractions.txt
@@ -376,8 +380,9 @@ get_study_design_by_dataset_package <- function(dataPkgNumber) {
    fractions <- readr::read_tsv(pathToFile, col_types=readr::cols(), progress=FALSE)
    if (!setequal(colnames(fractions), c("PlexID",
                                         "Dataset"))) {
-      stop("There are incorrect column names or missing columns in the 'fractions'
-         study design table.")
+      stop(paste0("Please check the required columns in the 'fractions.txt' file.\n",
+                  paste0(c("PlexID",
+                           "Dataset"), collapse = "\n")))
    }
    
    ## fetch references.txt
@@ -392,8 +397,10 @@ get_study_design_by_dataset_package <- function(dataPkgNumber) {
    if (!setequal(colnames(references), c("PlexID",
                                          "QuantBlock",
                                          "Reference"))) {
-      stop("There are incorrect column names or missing columns in the 'references'
-         study design table.")
+      stop(paste0("Please check the required columns in the 'references.txt' file.\n",
+                  paste0(c("PlexID",
+                           "QuantBlock",
+                           "Reference"), collapse = "\n")))
    }
    
    
