@@ -23,7 +23,7 @@
 #'
 
 filter_msgf_data_protein_level <- function(msnid,
-                                           protein_FDR_threshold=0.01,
+                                           fdr.max=0.01,
                                            n.iter.grid=500,
                                            n.iter.nm=100){
    # setup
@@ -32,14 +32,14 @@ filter_msgf_data_protein_level <- function(msnid,
    # step 1
    filtObj.grid <- optimize_filter(filtObj,
                                    msnid,
-                                   fdr.max=0.01,
+                                   fdr.max=fdr.max,
                                    method="Grid",
                                    level="accession",
                                    n.iter=n.iter.grid)
    # step 2
    filtObj.nm <- optimize_filter(filtObj.grid,
                                  msnid,
-                                 fdr.max=0.01,
+                                 fdr.max=fdr.max,
                                  # method="Nelder-Mead",
                                  method="SANN",
                                  level="accession",
