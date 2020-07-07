@@ -4,17 +4,21 @@
 \alias{filter_msgf_data_protein_level}
 \title{Filtering MSGF Data}
 \usage{
-filter_msgf_data_protein_level(msnid, protein_FDR_threshold = 0.01,
-  n.iter.grid = 500, n.iter.nm = 100)
+filter_msgf_data_protein_level(
+  msnid,
+  fdr.max = 0.01,
+  n.iter.grid = 500,
+  n.iter.nm = 100
+)
 }
 \arguments{
 \item{msnid}{(MSnID object) collated MSGF output}
 
-\item{protein_FDR_threshold}{(numeric) Maximum acceptable FDR rate. Default is 0.01.}
-
 \item{n.iter.grid}{(numeric) number of grid-distributed evaluation points. Default 500.}
 
 \item{n.iter.nm}{(numeric) number of iterations for Nelder-Mead optimization algorithm. Default 100.}
+
+\item{protein_FDR_threshold}{(numeric) Maximum acceptable FDR rate. Default is 0.01.}
 }
 \value{
 (MSnID object) filtered MSGF output

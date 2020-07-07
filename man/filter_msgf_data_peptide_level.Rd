@@ -4,13 +4,17 @@
 \alias{filter_msgf_data_peptide_level}
 \title{Filtering MSGF Data}
 \usage{
-filter_msgf_data_peptide_level(msnid, peptide_FDR_threshold = 0.01,
-  n.iter.grid = 500, n.iter.nm = 100)
+filter_msgf_data_peptide_level(
+  msnid,
+  fdr.max = 0.01,
+  n.iter.grid = 500,
+  n.iter.nm = 100
+)
 }
 \arguments{
 \item{msnid}{(MSnID object) collated MSGF output}
 
-\item{peptide_FDR_threshold}{(numeric) Maximum acceptable FDR rate. Default is 0.01.}
+\item{fdr.max}{(numeric) Maximum acceptable FDR rate. Default is 0.01.}
 
 \item{n.iter.grid}{(numeric) number of grid-distributed evaluation points. Default 500.}
 

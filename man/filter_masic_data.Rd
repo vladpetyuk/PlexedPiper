@@ -4,8 +4,7 @@
 \alias{filter_masic_data}
 \title{Filtering MASIC Data}
 \usage{
-filter_masic_data(x, interference_score_threshold = 0.9,
-  s2n_threshold = 4)
+filter_masic_data(x, interference_score_threshold = 0.9, s2n_threshold = 4)
 }
 \arguments{
 \item{x}{(data.frame) collated MASIC output}

@@ -4,8 +4,14 @@
 \alias{create_crosstab}
 \title{Makes Cross-Tab With Quantitative Data.}
 \usage{
-create_crosstab(msnid, reporter_intensities, aggregation_level, fractions,
-  samples, references)
+create_crosstab(
+  msnid,
+  reporter_intensities,
+  aggregation_level,
+  fractions,
+  samples,
+  references
+)
 }
 \arguments{
 \item{msnid}{(MSnID object) filtered MS/MS identifications}

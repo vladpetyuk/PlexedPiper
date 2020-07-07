@@ -5,8 +5,11 @@
 \alias{remap_accessions_refseq_to_gene_fasta}
 \title{Remap Sequence IDs in FASTA File}
 \usage{
-remap_accessions_refseq_to_gene_fasta(path_to_FASTA, organism_name,
-  conversion_table)
+remap_accessions_refseq_to_gene_fasta(
+  path_to_FASTA,
+  organism_name,
+  conversion_table
+)
 }
 \arguments{
 \item{organism_name}{(string) Official organism name}
