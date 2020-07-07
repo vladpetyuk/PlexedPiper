@@ -5,7 +5,7 @@
 #' given FDR constrain.
 #'
 #' @param msnid (MSnID object) collated MSGF output
-#' @param peptide_FDR_threshold (numeric) Maximum acceptable FDR rate. Default is 0.01.
+#' @param fdr.max (numeric) Maximum acceptable FDR rate. Default is 0.01.
 #' @param n.iter.grid (numeric) number of grid-distributed evaluation points. Default 500.
 #' @param n.iter.nm (numeric) number of iterations for Nelder-Mead optimization algorithm. Default 100.
 #' @return (MSnID object) filtered MSGF output
