@@ -210,10 +210,14 @@ converting_to_relative_to_reference <- function(quant_data,
    out <- as.matrix(out[,!"Specie"])
    rownames(out) <- species
 
-   # Inf and 0 values turn into NA
+   # Inf, Nan, and 0 values turn into NA
    out[is.infinite(out)] <- NA
+   out[is.nan(out)] <- NA
    out[out == 0] <- NA
-
+   
+   # remove rows with all NA
+   out <- out[!apply(is.na(out),1,all),]
+   
    # log2-transform
    out <- log2(out)
    return(out)
