@@ -5,7 +5,7 @@
 #' given FDR constrain.
 #'
 #' @param msnid (MSnID object) collated MSGF output
-#' @param peptide_FDR_threshold (numeric) Maximum acceptable FDR rate. Default is 0.01.
+#' @param fdr.max (numeric) Maximum acceptable FDR rate. Default is 0.01.
 #' @param n.iter.grid (numeric) number of grid-distributed evaluation points. Default 500.
 #' @param n.iter.nm (numeric) number of iterations for Nelder-Mead optimization algorithm. Default 100.
 #' @return (MSnID object) filtered MSGF output
@@ -20,7 +20,7 @@
 #' show(msnid)
 
 filter_msgf_data_peptide_level <- function(msnid,
-                                           peptide_FDR_threshold=0.01,
+                                           fdr.max=0.01,
                                            n.iter.grid=500,
                                            n.iter.nm=100){
    # setup
@@ -32,14 +32,14 @@ filter_msgf_data_peptide_level <- function(msnid,
    # step 1
    filtObj.grid <- optimize_filter(filtObj,
                                    msnid,
-                                   fdr.max=0.01,
+                                   fdr.max=fdr.max,
                                    method="Grid",
                                    level="peptide",
                                    n.iter=n.iter.grid)
    # step 2
    filtObj.nm <- optimize_filter(filtObj.grid,
                                  msnid,
-                                 fdr.max=0.01,
+                                 fdr.max=fdr.max,
                                  method="Nelder-Mead",
                                  level="peptide",
                                  n.iter=n.iter.nm)
