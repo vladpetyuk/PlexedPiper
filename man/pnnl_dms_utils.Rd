@@ -13,20 +13,31 @@
 \alias{get_results_for_single_job}
 \alias{get_results_for_single_job.dt}
 \alias{path_to_FASTA_used_by_DMS}
+\alias{get_study_design_by_dataset_package}
 \title{Utilities for interacting with PNNL DMS}
 \usage{
 is_PNNL_DMS_connection_successful()
 
-get_dms_job_records(jobs = NULL, datasetPttrn = "",
-  experimentPttrn = "", toolPttrn = "", parPttrn = "",
-  settingsPttrn = "", fastaPttrn = "", proteinOptionsPttrn = "",
-  intrumentPttrn = "")
+get_dms_job_records(
+  jobs = NULL,
+  datasetPttrn = "",
+  experimentPttrn = "",
+  toolPttrn = "",
+  parPttrn = "",
+  settingsPttrn = "",
+  fastaPttrn = "",
+  proteinOptionsPttrn = "",
+  intrumentPttrn = ""
+)
 
-get_tool_output_files_for_job_number(jobNumber, toolName, filePattern,
-  mostRecent = TRUE)
+get_tool_output_files_for_job_number(
+  jobNumber,
+  toolName,
+  filePattern,
+  mostRecent = TRUE
+)
 
-get_output_folder_for_job_and_tool(jobNumber, toolName,
-  mostRecent = TRUE)
+get_output_folder_for_job_and_tool(jobNumber, toolName, mostRecent = TRUE)
 
 get_AScore_results(dataPkgNumber)
 
@@ -41,6 +52,8 @@ get_results_for_single_job(pathToFile, fileNamePttrn)
 get_results_for_single_job.dt(pathToFile, fileNamePttrn)
 
 path_to_FASTA_used_by_DMS(data_package_number)
+
+get_study_design_by_dataset_package(dataPkgNumber)
 }
 \arguments{
 \item{jobs}{(integer) DMS job ID}

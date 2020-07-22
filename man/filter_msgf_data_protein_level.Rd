@@ -4,8 +4,12 @@
 \alias{filter_msgf_data_protein_level}
 \title{Filtering MSGF Data}
 \usage{
-filter_msgf_data_protein_level(msnid, protein_FDR_threshold = 0.01,
-  n.iter.grid = 500, n.iter.nm = 100)
+filter_msgf_data_protein_level(
+  msnid,
+  protein_FDR_threshold = 0.01,
+  n.iter.grid = 500,
+  n.iter.nm = 100
+)
 }
 \arguments{
 \item{msnid}{(MSnID object) collated MSGF output}
