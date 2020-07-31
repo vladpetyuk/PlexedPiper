@@ -550,7 +550,7 @@ get_study_design_by_dataset_package <- function(dataPkgNumber) {
       mount_cmd <- sprintf("mount -t smbfs %s %s", remote_folder, local_folder)
       system(mount_cmd)
    }else if(.Platform$OS.type == "windows"){
-      local_folder <- pathToFile
+      local_folder <- dataPkgReport$`Share Path`
    }else{
       stop("Unknown OS type.")
    }
