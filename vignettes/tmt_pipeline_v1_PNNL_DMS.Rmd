@@ -20,6 +20,29 @@ knitr::opts_chunk$set(message=FALSE, warning=FALSE)
 ```
 
 
+```{r libraries}
+library(PlexedPiper)
+library(MSnID)
+```
+
+`PlexedPiper` is the main library for the pipeline. `MSnID` package is a 
+flexible way of handling MS/MS identifications. It handles MS/MS data
+filtering part.
+
+# Data source
+
+This pipeline shows how to process TMT data that is processed within PNNL DMS.
+Data in PNNL DMS is organized using MS SQL Server into data packages. The data
+package number matching `PlexedPiperTestData` is 3442. Note, this vignette won't
+compile if there is now access to PNNL DMS.
+
+Alternative, smaller variant of 3442 package is 3606.
+
+```{r data package}
+data_package_num <- 3606
+```
+
+
 ```{r test_connection}
 # if there is no connection to PNNL DMS, vignette is not compiled
 if(!is_PNNL_DMS_connection_successful()){
@@ -29,23 +52,6 @@ if(!is_PNNL_DMS_connection_successful()){
 ```
 
 
-`PlexedPiper` is the main library for the pipeline. `MSnID` package is a 
-flexible way of handling MS/MS identifications. It handles MS/MS data
-filtering part.
-
-```{r libraries}
-library(PlexedPiper)
-library(MSnID)
-```
-
-
-# Data source
-
-This pipeline shows how to process TMT data that is processed within PNNL DMS.
-Data in PNNL DMS is organized using MS SQL Server into data packages. The data
-package number matching `PlexedPiperTestData` is 3442. Note, this vignette won't
-compile if there is now access to PNNL DMS.
-
 
 # Prepare MS/MS IDs
 
@@ -54,7 +60,7 @@ compile if there is now access to PNNL DMS.
 Fetching MS/MS search results by data package number. The text files are 
 collated together and the resulting `data.frame` used to create MSnID object.
 ```{r msms}
-msnid <- read_msms_data_from_DMS(3442)
+msnid <- read_msms_data_from_DMS(data_package_num)
 show(msnid)
 ```
 
@@ -100,7 +106,7 @@ from RefSeq to gene symbols. This is necessary if we are going to count the
 number of peptide identifications per protein or protein sequence coverage with
 accessions switched from RefSeq to gene symbols.
 ```{r fasta_refseq_2_gene}
-path_to_FASTA <- path_to_FASTA_used_by_DMS(3442)
+path_to_FASTA <- path_to_FASTA_used_by_DMS(data_package_num)
 path_to_FASTA_gene <- remap_accessions_refseq_to_gene_fasta(
    path_to_FASTA,
    organism_name = "Rattus norvegicus")
@@ -164,7 +170,8 @@ is due to co-isolated species that have similar elution time and parent ion m/z.
 S/N at reporter level is the metric that computed by Thermo software. 
 
 ```{r read_masic}
-masic_data <- read_masic_data_from_DMS(3442, interference_score=TRUE)
+masic_data <- read_masic_data_from_DMS(data_package_num, 
+                                       interference_score=TRUE)
 head(masic_data)
 ```
 
@@ -225,6 +232,16 @@ TMT10, there will be 5 QuantBlocks (1..5) with reference for each QuantBlock.
 ```{r read_references}
 references <- read_tsv(system.file("extdata/study_design/references.txt", package = "PlexedPiperTestData"))
 head(references)
+```
+
+## Reading Study Desing Tables from DMS Data Package Locations
+By convention, the study design tables should be stored in the 
+data package folder in DMS.
+```{r study design tables from DMS}
+study_design_tables <- get_study_design_by_dataset_package(data_package_num)
+fractions <- study_design_tables$fractions
+samples <- study_design_tables$samples
+references <- study_design_tables$references
 ```
 
 
