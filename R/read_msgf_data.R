@@ -14,7 +14,7 @@
 #' head(MSnID::psms(msnid))
 
 #' @export
-read_msgf_data <- function(path_to_MSGF_results){
+read_msgf_data <- function(path_to_MSGF_results, suffix = "_syn.txt"){
    msnid <- MSnID(".")
    # accession -> Protein
    # calculatedMassToCharge -> f(MH, Charge) MSnID:::.PROTON_MASS
@@ -25,7 +25,7 @@ read_msgf_data <- function(path_to_MSGF_results){
    # peptide -> Peptide
    # spectrumFile -> Dataset
    # spectrumID -> Scan
-   x <- collate_files(path_to_MSGF_results, "_syn.txt") %>%
+   x <- collate_files(path_to_MSGF_results, suffix) %>%
       mutate(accession = Protein,
              calculatedMassToCharge = (MH + (Charge-1)*MSnID:::.PROTON_MASS)/Charge,
              chargeState = Charge,
