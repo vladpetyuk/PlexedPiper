@@ -35,11 +35,7 @@ filter_msgf_data <- function(msnid,
    if (level == "peptide") {
       msnid$msmsScore <- -log10(msnid$PepQValue)
       msnid$absParentMassErrorPPM <- abs(mass_measurement_error(msnid))
-   }
-   
-   filtObj <- MSnIDFilter(msnid)
-   
-   if (level == "peptide") {
+      filtObj <- MSnIDFilter(msnid)
       filtObj$absParentMassErrorPPM <- list(comparison="<", threshold=10.0)
       filtObj$msmsScore <- list(comparison=">", threshold=2.0)
       method <- "Nelder-Mead"
