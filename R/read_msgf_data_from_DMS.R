@@ -1,6 +1,7 @@
 #' Reading MSGF output from PNNL's DMS
 #'
 #' @param DataPkgNumber (Numeric or Character vector) containing Data Package ID(s) located in DMS
+#' @param par_file (Character) Regular expression for MS-GF search parameters
 #' @return (MSnID) MSnID object
 #' @importFrom dplyr mutate
 #' @importFrom MSnID MSnID
@@ -56,3 +57,39 @@ read_msms_data_from_DMS <- function(DataPkgNumber){
 
 }
 
+#' @export
+read_msms_data_from_DMS_par_file <- function(DataPkgNumber, par_file=".*"){
+  msnid <- MSnID(".")
+  
+  if (!is.null(DataPkgNumber)) {
+    
+    # Fetch job records for data package(s)
+    if (length(DataPkgNumber) > 1) {
+      job_rec_ls <- lapply(DataPkgNumber, get_job_records_by_dataset_package)
+      jobRecords <- Reduce(rbind, job_rec_ls)
+    }
+    
+    else {
+      jobRecords <- get_job_records_by_dataset_package(DataPkgNumber)
+    }
+    
+    jobRecords <- jobRecords[grepl("MSGFPlus", jobRecords$Tool),]
+    jobRecords <- jobRecords[grepl(par_file, jobRecords$Parameter_File),]
+    
+    x <- get_results_for_multiple_jobs.dt(jobRecords)
+    x <- x %>%
+      mutate(accession = Protein,
+             calculatedMassToCharge = (MH + (Charge-1)*MSnID:::.PROTON_MASS)/Charge,
+             chargeState = Charge,
+             experimentalMassToCharge = PrecursorMZ,
+             isDecoy = grepl("^XXX", Protein),
+             peptide = Peptide,
+             spectrumFile = Dataset,
+             spectrumID = Scan)
+    
+    x <- mutate(x, pepSeq = MSnID:::.get_clean_peptide_sequence(peptide))
+    
+    psms(msnid) <- x
+    return(msnid)
+  }
+}
