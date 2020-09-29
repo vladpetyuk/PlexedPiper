@@ -261,6 +261,29 @@ head(quant_cross_tab)
 ```
 
 
+RII
+```{r rii}
+samples_rii <- samples %>%
+   mutate(MeasurementName = case_when(is.na(MeasurementName) ~ paste0("ref_",PlexID),
+                                      TRUE ~ MeasurementName))
+
+samples_rii <- samples %>%
+   mutate(MeasurementName = case_when(is.na(MeasurementName) ~ "ref",
+                                      TRUE ~ MeasurementName)) %>%
+   mutate(MeasurementName = paste0(MeasurementName,"_",PlexID))
+
+references_rii <- references %>%
+   mutate(Reference = 1)
+
+quant_cross_tab_rii <- create_crosstab(msnid, 
+                                   masic_data, 
+                                   aggregation_level, 
+                                   fractions, samples_rii, references_rii)
+
+
+```
+
+
 
 ```{r cleanup, echo=FALSE}
 unlink(".Rcache", recursive=TRUE)
