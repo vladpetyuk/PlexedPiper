@@ -16,6 +16,7 @@
 #' @param samples (data.frame) Study design table linking sample names with TMT channels and PlexID
 #' @param references (data.frame) Study design table describing reference value calculation
 #' @param org_name (character) Organism name. Default is 'Rattus norvegicus'
+#' @param sep (character) Single character used to concatenate protein, SiteID, and peptide
 #'
 #' @importFrom dplyr select inner_join mutate %>% case_when rename group_by summarize
 #' @importFrom tibble rownames_to_column
@@ -119,7 +120,7 @@ make_results_ratio_gl <- function(msnid, masic_data, fractions, samples,
 #' @export
 #' @rdname motrpac_bic_output
 make_rii_peptide_ph <- function(msnid, masic_data, fractions, samples, references,
-                                org_name = "Rattus norvegicus") {
+                                org_name = "Rattus norvegicus", sep="_") {
   samples_rii <- samples %>%
     mutate(MeasurementName = case_when(is.na(MeasurementName) ~ paste0("Ref", "_", PlexID),
                                        TRUE ~ MeasurementName))
@@ -143,11 +144,12 @@ make_rii_peptide_ph <- function(msnid, masic_data, fractions, samples, reference
     dplyr::select(protein_id, sequence, everything(), -Specie)
   
   conv <- dplyr::select(psms(msnid), ptm_id = SiteID, protein_id = accession, sequence = peptide) %>% 
-    mutate(protein_id = sub("(.P_.*)\\.\\d+$", "\\1", protein_id))
+    mutate(protein_id = sub("(.P_.*)\\.\\d+$", "\\1", protein_id),
+           ptm_id = sub("-", sep, ptm_id))
   
   crosstab <- left_join(crosstab, conv) %>% 
     distinct() %>% 
-    mutate(ptm_peptide = paste0(ptm_id, "-", sequence))
+    mutate(ptm_peptide = paste0(ptm_id, sep, sequence))
   
   ## Add Genes + EntrezID
   x <- fetch_conversion_table(org_name, from = "REFSEQ", "SYMBOL")
@@ -179,7 +181,7 @@ make_rii_peptide_ph <- function(msnid, masic_data, fractions, samples, reference
 #' @export
 #' @rdname motrpac_bic_output
 make_results_ratio_ph <- function(msnid, masic_data, fractions, samples, 
-                                  references, org_name = "Rattus norvegicus") {
+                                  references, org_name = "Rattus norvegicus", sep="_") {
   
   aggregation_level <- c("SiteID")
   crosstab <- create_crosstab(msnid, masic_data, aggregation_level, fractions,
@@ -187,7 +189,8 @@ make_results_ratio_ph <- function(msnid, masic_data, fractions, samples,
   crosstab <- crosstab %>% 
     as.data.frame() %>% 
     rownames_to_column('ptm_id') %>% 
-    mutate(protein_id = sub("(.P_.*)\\.\\d+-.*", "\\1", ptm_id))
+    mutate(protein_id = sub("(.P_.*)\\.\\d+-.*", "\\1", ptm_id),
+           ptm_id = sub("-", sep, ptm_id))
   
   x <- fetch_conversion_table(org_name, from = "REFSEQ", "SYMBOL")
   y <- fetch_conversion_table(org_name, from = "REFSEQ", "ENTREZID")
