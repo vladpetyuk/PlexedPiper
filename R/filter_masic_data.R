@@ -29,9 +29,14 @@
 filter_masic_data <- function(x,
                               interference_score_threshold = 0.9,
                               s2n_threshold = 4){
-   x <- x %>% filter(InterferenceScore >= interference_score_threshold)
+   reporter_ions <- colnames(masic_data)[grepl("SignalToNoise", colnames(masic_data))] %>%
+      sub("_SignalToNoise", "", .)
+   
+   x <- x %>% filter(InterferenceScore >= interference_score_threshold) %>%
+      select(Dataset, ScanNumber, all_of(reporter_ions), contains("SignalToNoise"))
+   
    if (s2n_threshold == 0 | is.na(s2n_threshold)) {
-      x <- x %>% select(Dataset, ScanNumber, starts_with("Ion"), -contains("SignalToNoise"))
+      x <- x %>% select(-contains("SignalToNoise"))
    } else if (s2n_threshold > 0) {
       selected <- x %>% select(Dataset, ScanNumber, contains("SignalToNoise")) %>% 
          gather(channel, s2n, -c(Dataset, ScanNumber)) %>%
@@ -39,7 +44,7 @@ filter_masic_data <- function(x,
          filter(s2n >= s2n_threshold) %>% select(-s2n) %>% 
          mutate(channel = sub("_SignalToNoise", "", channel))
       
-      x <- x %>% select(Dataset, ScanNumber, starts_with("Ion"), -contains("SignalToNoise")) %>%
+      x <- x %>% select(Dataset, ScanNumber, all_of(reporter_ions)) %>%
          gather(channel, intensity, -c(Dataset, ScanNumber)) %>%
          inner_join(selected, by = c("Dataset","ScanNumber", "channel")) %>%
          spread(channel, intensity)
