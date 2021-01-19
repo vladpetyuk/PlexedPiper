@@ -14,7 +14,21 @@
 #' head(MSnID::psms(msnid))
 
 #' @export
-read_msgf_data <- function(path_to_MSGF_results, suffix = "_syn.txt"){
+read_msgf_data <- function(path_to_MSGF_results, suffix = NULL){
+   
+   if (is.null(suffix)) {
+      for (pattern in c("_msgfplus_syn.txt$", "_msgfdb_syn.txt$", "_syn.txt$")) {
+         if (length(list.files(path_to_MSGF_results, pattern)) > 0) {
+            suffix <- pattern
+            break
+         }
+      }
+   }
+   
+   if (is.null(suffix) | (length(list.files(path_to_MSGF_results, suffix)) == 0)) {
+      stop("MS-GF+ results not found.")
+   }
+   
    msnid <- MSnID(".")
    # accession -> Protein
    # calculatedMassToCharge -> f(MH, Charge) MSnID:::.PROTON_MASS
