@@ -144,12 +144,11 @@ make_rii_peptide_ph <- function(msnid, masic_data, fractions, samples, reference
     dplyr::select(protein_id, sequence, everything(), -Specie)
   
   conv <- dplyr::select(psms(msnid), ptm_id = SiteID, protein_id = accession, sequence = peptide) %>% 
-    mutate(protein_id = sub("(.P_.*)\\.\\d+$", "\\1", protein_id),
-           ptm_id = sub("-", sep, ptm_id))
+    mutate(protein_id = sub("(.P_.*)\\.\\d+$", "\\1", protein_id))
   
   crosstab <- left_join(crosstab, conv) %>% 
     distinct() %>% 
-    mutate(ptm_peptide = paste0(ptm_id, sep, sequence))
+    mutate(ptm_peptide = paste0(ptm_id, "-", sequence))
   
   ## Add Genes + EntrezID
   x <- fetch_conversion_table(org_name, from = "REFSEQ", "SYMBOL")
@@ -172,7 +171,9 @@ make_rii_peptide_ph <- function(msnid, masic_data, fractions, samples, reference
   
   crosstab <- left_join(crosstab, ascore) %>% 
     mutate(confident_site = dplyr::case_when(confident_score >= 17 ~ TRUE,
-                                             confident_score < 17 ~ FALSE)) %>% 
+                                             confident_score < 17 ~ FALSE),
+           ptm_id = gsub("-", sep, ptm_id),
+           ptm_peptide = gsub("-", sep, ptm_peptide)) %>% 
     dplyr::select(protein_id, sequence, ptm_id, ptm_peptide, gene_symbol, entrez_id, confident_score, confident_site, everything()) %>% 
     distinct()
   return(crosstab)
@@ -189,8 +190,7 @@ make_results_ratio_ph <- function(msnid, masic_data, fractions, samples,
   crosstab <- crosstab %>% 
     as.data.frame() %>% 
     rownames_to_column('ptm_id') %>% 
-    mutate(protein_id = sub("(.P_.*)\\.\\d+-.*", "\\1", ptm_id),
-           ptm_id = sub("-", sep, ptm_id))
+    mutate(protein_id = sub("(.P_.*)\\.\\d+-.*", "\\1", ptm_id))
   
   x <- fetch_conversion_table(org_name, from = "REFSEQ", "SYMBOL")
   y <- fetch_conversion_table(org_name, from = "REFSEQ", "ENTREZID")
@@ -213,7 +213,8 @@ make_results_ratio_ph <- function(msnid, masic_data, fractions, samples,
   
   crosstab <- crosstab %>% 
     mutate(confident_site = dplyr::case_when(confident_score >= 17 ~ TRUE,
-                                             confident_score < 17 ~ FALSE)) %>% 
+                                             confident_score < 17 ~ FALSE),
+           ptm_id = gsub("-", sep, ptm_id)) %>% 
     dplyr::select(ptm_id, protein_id, gene_symbol, entrez_id, confident_score, confident_site, everything())
   
   crosstab[, c(7:ncol(crosstab))] <- signif(crosstab[, c(7:ncol(crosstab))], 3)
