@@ -1,6 +1,6 @@
 ---
 title: |
-    Suggested TMT processing pipeline. Variant 1.
+    Suggested TMT processing pipeline for non-DMS data processing.
 
 vignette: >
   %\VignetteIndexEntry{tmt_pipeline_test}
