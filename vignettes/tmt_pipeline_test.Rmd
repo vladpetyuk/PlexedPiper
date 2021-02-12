@@ -3,7 +3,7 @@ title: |
     Suggested TMT processing pipeline for non-DMS data processing.
 
 vignette: >
-  %\VignetteIndexEntry{tmt_pipeline_test}
+  %\VignetteIndexEntry{Suggested TMT processing pipeline for non-DMS data processing}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 
