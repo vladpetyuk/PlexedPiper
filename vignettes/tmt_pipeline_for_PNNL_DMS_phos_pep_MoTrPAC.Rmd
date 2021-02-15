@@ -4,7 +4,7 @@ title: |
     for MoTrPAC project. Peptide level.
 
 vignette: >
-  %\VignetteIndexEntry{tmt_pipeline_v1_PNNL_DMS_phospho_pep}
+  %\VignetteIndexEntry{tmt_pipeline_for_PNNL_DMS_phos_pep_MoTrPAC}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 
