@@ -17,7 +17,7 @@
 read_msgf_data <- function(path_to_MSGF_results, suffix = NULL){
    
    if (is.null(suffix)) {
-      for (pattern in c("_msgfplus_syn.txt$", "_msgfdb_syn.txt$", "_syn.txt$")) {
+      for (pattern in c("_msgfplus_syn.txt", "_msgfdb_syn.txt", "_syn.txt")) {
          if (length(list.files(path_to_MSGF_results, pattern)) > 0) {
             suffix <- pattern
             break
