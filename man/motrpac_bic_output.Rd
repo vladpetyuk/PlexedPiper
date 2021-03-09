@@ -6,6 +6,10 @@
 \alias{make_results_ratio_gl}
 \alias{make_rii_peptide_ph}
 \alias{make_results_ratio_ph}
+\alias{map_flanking_sequence}
+\alias{assess_redundant_protein_matches}
+\alias{assess_noninferable_proteins}
+\alias{compute_protein_coverage}
 \title{Format Tables for BIC}
 \usage{
 make_rii_peptide_gl(
@@ -32,7 +36,8 @@ make_rii_peptide_ph(
   fractions,
   samples,
   references,
-  org_name = "Rattus norvegicus"
+  org_name = "Rattus norvegicus",
+  sep = "_"
 )
 
 make_results_ratio_ph(
@@ -41,8 +46,17 @@ make_results_ratio_ph(
   fractions,
   samples,
   references,
-  org_name = "Rattus norvegicus"
+  org_name = "Rattus norvegicus",
+  sep = "_"
 )
+
+map_flanking_sequence(msnid, fasta, radius = 7L, collapse = "|")
+
+assess_redundant_protein_matches(msnid, collapse = "|")
+
+assess_noninferable_proteins(msnid, collapse = "|")
+
+compute_protein_coverage(msnid, path_to_FASTA)
 }
 \arguments{
 \item{msnid}{(MSnID-object) final filtered version of MSnID object}
@@ -56,6 +70,8 @@ make_results_ratio_ph(
 \item{references}{(data.frame) Study design table describing reference value calculation}
 
 \item{org_name}{(character) Organism name. Default is 'Rattus norvegicus'}
+
+\item{sep}{(character) Single character used to concatenate protein, SiteID, and peptide}
 }
 \description{
 Assembles data in format compliant with BIC requirements.
@@ -65,6 +81,10 @@ Assembles data in format compliant with BIC requirements.
 \item \code{make_results_ratio_gl()}: returns 'results_ratio.txt' table (global)
 \item \code{make_rii_peptide_ph()}: returns 'RII_peptide.txt' table (phospho)
 \item \code{make_results_ratio_ph()}: returns 'results_ratio.txt' table (phospho)
+\item \code{map_flanking_sequence()}: returns MSnID object with +/- 7 amino acids (by default) surrounding each PTM
+\item \code{assess_redundant_proteins()}: appends proteins matched to multiple peptides
+\item \code{assess_noninferable_proteins()}: appends proteins with identical peptide sets
+\item \code{compute_protein_coverage()}: determines what percent of protein is covered by given peptides.
 }
 }
 \examples{
