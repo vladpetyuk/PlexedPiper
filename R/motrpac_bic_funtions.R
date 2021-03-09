@@ -105,8 +105,8 @@ make_rii_peptide_gl <- function(msnid, masic_data, fractions, samples,
     select(accession, peptide, redundantAccessions, MSGFDB_SpecEValue) %>%
     rename(protein_id = accession,
            sequence = peptide,
-           redundant_accessions = redundantAccessions) %>%
-    group_by(protein_id, sequence, redundant_accessions) %>%
+           redundant_ids = redundantAccessions) %>%
+    group_by(protein_id, sequence, redundant_ids) %>%
     summarize(peptide_score = min(MSGFDB_SpecEValue))
   
   rii_peptide <- inner_join(rii_peptide, ids)
@@ -134,7 +134,8 @@ make_results_ratio_gl <- function(msnid, masic_data, fractions, samples,
   ## Create results ratio table
   results_ratio <- crosstab %>%
     select(protein_id) %>%
-    mutate(REFSEQ = sub("(^.*)\\.\\d+", "\\1", protein_id))
+    mutate(organism_name = org_name,
+           REFSEQ = sub("(^.*)\\.\\d+", "\\1", protein_id))
   
   ## Attach Gene symbol and Entrez ID
   conv <- fetch_conversion_table(org_name, from = "REFSEQ", "SYMBOL")
@@ -227,8 +228,8 @@ make_rii_peptide_ph <- function(msnid, masic_data, fractions, samples, reference
            sequence = peptide,
            ptm_id = SiteID,
            flanking_sequence = flankingSequence,
-           redundant_accessions = redundantAccessions) %>%
-    group_by(protein_id, sequence, ptm_id, flanking_sequence, redundant_accessions) %>%
+           redundant_ids = redundantAccessions) %>%
+    group_by(protein_id, sequence, ptm_id, flanking_sequence, redundant_ids) %>%
     summarize(peptide_score = min(MSGFDB_SpecEValue),
               confident_score = max(maxAScore)) %>%
     mutate(confident_site = case_when(confident_score >= 17 ~ TRUE,
@@ -277,17 +278,19 @@ make_results_ratio_ph <- function(msnid, masic_data, fractions, samples,
   ## Additional info from MS/MS
   ids <- psms(msnid) %>%
     select(accession, peptide, SiteID,
-           flankingSequence, MSGFDB_SpecEValue, maxAScore) %>%
+           redundantAccessions, flankingSequence,
+           MSGFDB_SpecEValue, maxAScore) %>%
     rename(protein_id = accession,
            sequence = peptide,
            ptm_id = SiteID,
+           redundant_ids = redundantAccessions,
            flanking_sequence = flankingSequence) %>%
     # group at peptide level to calculate peptide score, confident score
-    group_by(protein_id, sequence, ptm_id, flanking_sequence) %>%
+    group_by(protein_id, sequence, ptm_id, flanking_sequence, redundant_ids) %>%
     summarize(peptide_score = min(MSGFDB_SpecEValue),
               confident_score = max(maxAScore)) %>%
     # regroup at siteID level and recalculate ptm score
-    group_by(protein_id, ptm_id, flanking_sequence) %>%
+    group_by(protein_id, ptm_id, flanking_sequence, redundant_ids) %>%
     summarize(ptm_score = min(peptide_score),
               confident_score = max(confident_score)) %>%
     mutate(confident_site = case_when(confident_score >= 17 ~ TRUE,
