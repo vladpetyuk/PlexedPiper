@@ -156,11 +156,11 @@ make_results_ratio_gl <- function(msnid, masic_data, fractions, samples,
            MSGFDB_SpecEValue) %>%
     rename(protein_id = accession,
            sequence = peptide,
-           noninferable_proteins = noninferableProteins,
+           redundant_ids = noninferableProteins,
            percent_coverage = percentAACoverage) %>%
-    group_by(protein_id, sequence, noninferable_proteins, percent_coverage) %>%
+    group_by(protein_id, sequence, redundant_ids, percent_coverage) %>%
     summarize(peptide_score = min(MSGFDB_SpecEValue)) %>%
-    group_by(protein_id, noninferable_proteins, percent_coverage) %>%
+    group_by(protein_id, redundant_ids, percent_coverage) %>%
     summarize(protein_score = min(peptide_score),
               num_peptides = n()) 
   
