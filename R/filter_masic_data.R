@@ -14,7 +14,7 @@
 #' @param s2n_threshold (numeric) S/N calculated by vendor and extracted MASIC from raw files. Default is 4.
 #' @return (data.frame) filtered MASIC output
 #' @importFrom dplyr filter select inner_join mutate %>%
-#' @importFrom tidyselect contains starts_with
+#' @importFrom tidyselect contains starts_with all_of
 #' @importFrom tidyr gather spread
 #' @export filter_masic_data
 #' @examples
