@@ -29,16 +29,20 @@
 remap_accessions_refseq_to_gene <- function(msnid,
                                             organism_name,
                                             conversion_table){
+   
+   acc.d <- accessions(msnid)
+   # by default RefSeq ID are with version digit(s)
+   acc <- sub(".*?(.P_\\d+)(\\.\\d+)?", "\\1", acc.d) # this drops ^XXX
+   
+   acc.x <- bind_cols(accessions = acc.d, REFSEQ = acc)
+   
    if(!missing(conversion_table)){
-      other_column_name <- setdiff(colnames(conversion_table,"accession"))
-      conv_vec <- conversion_table[,other_column_name]
-      names(conv_vec) <- conversion_table[,"accession"]
-   }else{
-
-      acc.d <- accessions(msnid)
-      # by default RefSeq ID are with version digit(s)
-      acc <- sub(".*?(.P_\\d+)(\\.\\d+)?","\\1",acc.d) # this drops ^XXX
-
+      conversion_table <- filter(conversion_table, 
+                                 !is.na(conversion_table$SYMBOL))
+      conv_map <- inner_join(acc.x, conversion_table, by = "REFSEQ")
+   }
+   
+   else{
       ah <- AnnotationHub()
       orgs <- subset(ah, ah$rdataclass == "OrgDb")
       db <- query(orgs, organism_name)
@@ -50,18 +54,17 @@ remap_accessions_refseq_to_gene <- function(msnid,
                                        columns="SYMBOL",
                                        keytype="REFSEQ")
       conv_ann <- filter(conv_ann, !is.na(SYMBOL))
-
-      acc.x <- bind_cols(accessions=acc.d, REFSEQ=acc)
       conv_map <- inner_join(acc.x, conv_ann, by="REFSEQ")
-      conv_vec <- conv_map$SYMBOL
-      names(conv_vec) <- conv_map$accessions
    }
 
    # # add reverse IDs
    # conv_vec_rev <- paste0("XXX_",conv_vec)
    # names(conv_vec_rev) <- paste0("XXX_",names(conv_vec_rev))
    # conv_vec <- c(conv_vec, conv_vec_rev)
-
+   
+   conv_vec <- conv_map$SYMBOL
+   names(conv_vec) <- conv_map$accessions
+   
    msnid$accession <- conv_vec[msnid$accession]
 
    # make sure decoy accessions start with XXX
@@ -86,16 +89,19 @@ remap_accessions_refseq_to_gene <- function(msnid,
 remap_accessions_uniprot_to_gene <- function(msnid,
                                             organism_name,
                                             conversion_table){
+   acc_full <- accessions(msnid)
+   # this drops ^XXX and isoform number if present
+   acc <- sub("^.*\\|(.+?)(-\\d+)?\\|.*", "\\1", acc_full)
+   
+   acc.x <- bind_cols(accessions = acc_full, UNIPROT = acc)
+   
    if(!missing(conversion_table)){
-      other_column_name <- setdiff(colnames(conversion_table,"accession"))
-      conv_vec <- conversion_table[,other_column_name]
-      names(conv_vec) <- conversion_table[,"accession"]
-   }else{
-
-      acc_full <- accessions(msnid)
-      # this drops ^XXX and isoform number if present
-      acc <- sub("^.*\\|(.+?)(-\\d+)?\\|.*","\\1",acc_full)
-
+      conversion_table <- filter(conversion_table, 
+                                 !is.na(conversion_table$SYMBOL))
+      conv_map <- inner_join(acc.x, conversion_table, by = "UNIPROT")
+   }
+   
+   else{ 
       ah <- AnnotationHub()
       orgs <- subset(ah, ah$rdataclass == "OrgDb")
       db <- query(orgs, organism_name)
@@ -108,16 +114,16 @@ remap_accessions_uniprot_to_gene <- function(msnid,
                                         columns="SYMBOL",
                                         keytype="UNIPROT")
       conv_ann <- filter(conv_ann, !is.na(SYMBOL))
-      acc.x <- bind_cols(accessions=acc_full, UNIPROT=acc)
       conv_map <- inner_join(acc.x, conv_ann, by="UNIPROT")
-      conv_vec <- conv_map$SYMBOL
-      names(conv_vec) <- conv_map$accessions
    }
 
    # # add reverse IDs
    # conv_vec_rev <- paste0("XXX_",conv_vec)
    # names(conv_vec_rev) <- paste0("XXX_",names(conv_vec_rev))
    # conv_vec <- c(conv_vec, conv_vec_rev)
+   
+   conv_vec <- conv_map$SYMBOL
+   names(conv_vec) <- conv_map$accessions
 
    msnid$accession <- conv_vec[msnid$accession]
 
