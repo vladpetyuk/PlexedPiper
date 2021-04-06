@@ -331,16 +331,16 @@ map_flanking_sequence <- function (msnid, fasta, radius=7L, collapse="|") {
   }
   
   x <- psms(msnid) %>%
-    dplyr::select(accession, SiteLoc) %>%
+    select(accession, SiteLoc) %>%
     distinct()
   
   x <- fasta %>%
     as.data.frame() %>%
     rownames_to_column("accession") %>%
-    dplyr::mutate(accession = sub("^(.P_\\d+\\.\\d+)?\\s.*", "\\1", accession)) %>%
-    dplyr::rename(ProtSeq = x) %>%
-    dplyr::mutate(ProtSeqWidth = nchar(ProtSeq)) %>%
-    inner_join(x, .)
+    mutate(accession = sub("^(.P_\\d+\\.\\d+)?\\s.*", "\\1", accession)) %>%
+    rename(ProtSeq = x) %>%
+    mutate(ProtSeqWidth = nchar(ProtSeq)) %>%
+    inner_join(x, ., by="accession")
   
   
   f <- function(ProtSeq_i, SiteLoc_i) {
@@ -373,8 +373,10 @@ map_flanking_sequence <- function (msnid, fasta, radius=7L, collapse="|") {
   x$flankingSequence <-  map2(x$ProtSeq, x$SiteLoc, f)
   x$flankingSequence <- as.character(x$flankingSequence)
   
-  msnid@psms <- psms(msnid) %>% mutate(flankingSequence=NULL) %>%
-    left_join(x) %>% data.table()
+  msnid@psms <- psms(msnid) %>%
+    mutate(flankingSequence=NULL) %>%
+    left_join(x, by=c("accession", "SiteLoc")) %>% 
+    data.table()
   
   return(msnid)
 }
@@ -385,11 +387,11 @@ map_flanking_sequence <- function (msnid, fasta, radius=7L, collapse="|") {
 #' @rdname motrpac_bic_output
 assess_redundant_protein_matches <- function(msnid, collapse="|") {
   msnid@psms <- psms(msnid) %>%
-    dplyr::select(accession, peptide) %>%
+    select(accession, peptide) %>%
     distinct() %>%
     group_by(peptide) %>%
     summarize(redundantAccessions = paste(accession, collapse=collapse)) %>%
-    left_join(psms(msnid), .) %>%
+    left_join(psms(msnid), ., by="peptide") %>%
     data.table()
   return(msnid)
 }
@@ -400,7 +402,7 @@ assess_noninferable_proteins <- function(msnid, collapse="|") {
   
   # assign each accession to its peptide set
   x <- psms(msnid) %>%
-    dplyr::select(accession, Peptide) %>%
+    select(accession, Peptide) %>%
     group_by(accession) %>%
     arrange(Peptide) %>%
     summarize(peptide_set = paste(Peptide, collapse=collapse))
@@ -409,11 +411,13 @@ assess_noninferable_proteins <- function(msnid, collapse="|") {
   x <- x %>%
     group_by(peptide_set) %>%
     summarize(noninferableProteins = paste(accession, collapse=collapse)) %>%
-    left_join(x) %>%
-    dplyr::select(-peptide_set)
+    left_join(x,by="peptide_set") %>%
+    select(-peptide_set)
     
-  msnid@psms <- psms(msnid) %>% mutate(noninferableProteins=NULL) %>%
-    left_join(x) %>% data.table()
+  msnid@psms <- psms(msnid) %>%
+    mutate(noninferableProteins=NULL) %>%
+    left_join(x, by="accession") %>%
+    data.table()
   
   return(msnid)
 }
@@ -459,16 +463,21 @@ compute_protein_coverage <- function(msnid, path_to_FASTA) {
     return(percentAACoverage)
   }
   
-  ids <- psms(msnid) %>% dplyr::select(Protein, pepSeq) %>%
+  ids <- psms(msnid) %>% 
+    select(Protein, pepSeq) %>%
     distinct()
   
-  proteins <- ids %>% dplyr::select(Protein) %>% distinct()
+  proteins <- ids %>% 
+    select(Protein) %>%
+    distinct()
   
   proteins$percentAACoverage <-  map(proteins$Protein, get_coverage_for_single_protein, ids, fasta)
   proteins$percentAACoverage <- as.numeric(proteins$percentAACoverage)
   
-  msnid@psms <- psms(msnid) %>% mutate(percentAACoverage=NULL) %>%
-    left_join(proteins) %>% data.table()
+  msnid@psms <- psms(msnid) %>%
+    mutate(percentAACoverage=NULL) %>%
+    left_join(proteins) %>%
+    data.table()
   
   return(msnid)
 }
