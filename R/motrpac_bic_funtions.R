@@ -285,12 +285,12 @@ make_results_ratio_ph <- function(msnid, masic_data, fractions, samples,
   ## Additional info from MS/MS
   ids <- psms(msnid) %>%
     select(accession, peptide, SiteID,
-           redundantAccessions, flankingSequence,
+           noninferableProteins, flankingSequence,
            MSGFDB_SpecEValue, maxAScore) %>%
     rename(protein_id = accession,
            sequence = peptide,
            ptm_id = SiteID,
-           redundant_ids = redundantAccessions,
+           redundant_ids = noninferableProteins,
            flanking_sequence = flankingSequence) %>%
     # group at peptide level to calculate peptide score, confident score
     group_by(protein_id, sequence, ptm_id, flanking_sequence, redundant_ids) %>%
