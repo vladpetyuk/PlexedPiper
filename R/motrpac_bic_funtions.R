@@ -331,7 +331,7 @@ map_flanking_sequence <- function (msnid, fasta, radius=7L, collapse="|") {
   }
   
   x <- psms(msnid) %>%
-    dplyr::select(accession, Peptide, SiteLoc) %>%
+    dplyr::select(accession, SiteLoc) %>%
     distinct()
   
   x <- fasta %>%
@@ -345,7 +345,7 @@ map_flanking_sequence <- function (msnid, fasta, radius=7L, collapse="|") {
   
   f <- function(ProtSeq_i, SiteLoc_i) {
     flankingSequences <- c()
-    for (k in unlist(SiteLoc_i)) {
+    for (k in unlist(SiteLoc_i[[1]])) {
       
       site_left <- substr(ProtSeq_i, max(k-radius,1), k-1)
       
