@@ -193,7 +193,7 @@ make_rii_peptide_ph <- function(msnid, masic_data, fractions, samples, reference
     mutate(Reference = 1)
   
   ## Create crosstab
-  aggregation_level <- c("accession", "peptide", "SiteID")
+  aggregation_level <- c("accession", "Peptide", "SiteID")
   crosstab <- create_crosstab(msnid, 
                               masic_data, 
                               aggregation_level, 
