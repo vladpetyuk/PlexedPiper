@@ -209,7 +209,8 @@ make_rii_peptide_ph <- function(msnid, masic_data, fractions, samples, reference
     select(Specie) %>%
     mutate(protein_id = sub("(^.*)@(.*)@(.*)", "\\1", Specie),
            sequence = sub("(^.*)@(.*)@(.*)", "\\2", Specie),
-           ptm_id = sub("(^.*)@(.*)@(.*)", "\\3", Specie),
+           ptm_id = sub("(^.*)@(.*)@(.*)", "\\3", Specie)) %>%
+    mutate(ptm_peptide = paste(ptm_id, sequence, sep=sep),
            organism_name = org_name) %>%
     mutate(REFSEQ = sub("(^.*)\\.\\d+", "\\1", protein_id))
   
@@ -243,7 +244,8 @@ make_rii_peptide_ph <- function(msnid, masic_data, fractions, samples, reference
            is_contaminant = grepl("Contaminant", protein_id))
   
   rii_peptide <- inner_join(rii_peptide, ids) %>%
-    mutate(ptm_id = gsub("-", sep, ptm_id))
+    mutate(ptm_id = gsub("-", sep, ptm_id),
+           ptm_peptide = gsub("-", sep, ptm_peptide))
   
   ## Join with crosstab
   rii_peptide <- inner_join(rii_peptide, crosstab) %>%
