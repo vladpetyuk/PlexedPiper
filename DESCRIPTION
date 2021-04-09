@@ -28,7 +28,11 @@ Imports:
    knitr,
    rmarkdown,
    readr,
-   Rcpp (<= 1.0.2)
+   Rcpp,
+   IRanges,
+   MSnbase,
+   purrr,
+   tibble
 Remotes: github::vladpetyuk/PlexedPiperTestData, github::vladpetyuk/MSnID
 biocViews:
 VignetteBuilder: knitr

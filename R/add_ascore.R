@@ -22,7 +22,7 @@
 #' msnid <- add_ascore(msnid, ascore)
 #'
 
-best_PTM_location_by_ascore <- function(msnid, ascore){
+best_PTM_location_by_ascore_old <- function(msnid, ascore){
    #
    ascore <- ascore %>%
       group_by(Job, Scan, OriginalSequence, BestSequence) %>%
@@ -34,6 +34,28 @@ best_PTM_location_by_ascore <- function(msnid, ascore){
       ungroup() %>%
       select(-Peptide) %>%
       rename(Peptide = BestSequence)
+
+   psms(msnid) <- x
+
+   return(msnid)
+
+}
+
+
+
+best_PTM_location_by_ascore <- function(msnid, ascore){
+   #
+   ascore <- ascore %>%
+      group_by(spectrumFile, Scan, OriginalSequence, BestSequence) %>%
+      summarise(maxAScore = max(AScore)) %>%
+      ungroup() %>%
+      rename(peptide = OriginalSequence)
+
+   x <- ascore %>%
+      inner_join(psms(msnid), by=c("spectrumFile", "Scan", "peptide")) %>%
+      rename(OriginalPeptide = peptide,
+             peptide = BestSequence) %>%
+      select(-BestSequence)
 
    psms(msnid) <- x
 
