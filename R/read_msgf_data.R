@@ -29,38 +29,31 @@ read_msgf_data <- function(path_to_MSGF_results, suffix = NULL){
       stop("MS-GF+ results not found.")
    }
    
-   msnid <- MSnID(".")
-   # accession -> Protein
-   # calculatedMassToCharge -> f(MH, Charge) MSnID:::.PROTON_MASS
-   # (MH + (Charge-1)*MSnID:::.PROTON_MASS)/Charge
-   # chargeState -> Charge
-   # experimentalMassToCharge -> PrecursorMZ
-   # isDecoy -> grep("^XXX", Protein)
-   # peptide -> Peptide
-   # spectrumFile -> Dataset
-   # spectrumID -> Scan
-   x <- collate_files(path_to_MSGF_results, suffix) %>%
-      mutate(accession = Protein,
+   x <- collate_files(path_to_MSGF_results, suffix)
+   msnid <- convert_msgf_output_to_msnid(x)
+   return(msnid)
+}
+
+
+# helper function
+convert_msgf_output_to_msnid <- function(x){
+   suppressMessages(msnid <- MSnID("."))
+   x <- x %>% mutate(accession = Protein,
              calculatedMassToCharge = (MH + (Charge-1)*MSnID:::.PROTON_MASS)/Charge,
              chargeState = Charge,
              experimentalMassToCharge = PrecursorMZ,
              isDecoy = grepl("^XXX", Protein),
-             peptide = Peptide,
              spectrumFile = Dataset,
-             spectrumID = Scan)
-   # extra piece that may be removed in the future.
-   # decoy accessions stripped of XXX_ prefix
-   # x <- x %>%
-   #    mutate(accession = sub("^XXX_","",accession))
-
+             spectrumID = Scan) %>%
+      rename(peptide = Peptide)
    # clean peptide sequences
    x <- mutate(x, pepSeq = MSnID:::.get_clean_peptide_sequence(peptide))
-
+   
    psms(msnid) <- x
-
+   
    return(msnid)
 }
-
+#' 
 
 #' # (yet) non-exported helper function
 #' #' @importFrom Biostrings AA_STANDARD
