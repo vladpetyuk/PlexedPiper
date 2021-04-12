@@ -8,10 +8,8 @@
 #' * `make_results_ratio_gl()`: returns 'results_ratio.txt' table (global)
 #' * `make_rii_peptide_ph()`: returns 'RII_peptide.txt' table (phospho)
 #' * `make_results_ratio_ph()`: returns 'results_ratio.txt' table (phospho)
-#' * `map_flanking_sequence()`: returns MSnID object with +/- 7 amino acids (by default) surrounding each PTM
 #' * `assess_redundant_proteins()`: appends proteins matched to multiple peptides
 #' * `assess_noninferable_proteins()`: appends proteins with identical peptide sets
-#' * `compute_protein_coverage()`: determines what percent of protein is covered by given peptides.
 #' 
 #' @md
 #'
@@ -317,74 +315,6 @@ make_results_ratio_ph <- function(msnid, masic_data, fractions, samples,
 }
 
 
-
-#' @export
-#' @rdname motrpac_bic_output
-map_flanking_sequence <- function (msnid, fasta, radius=7L, collapse="|") {
-  
-  # This function takes every phosphosite
-  # and appends the amino acids within +/- 7 neighborhood
-  # along the corresponding protein.
-  # If there are multiple phosphosites on a single peptide then
-  # they are pasted together.
-  
-  if (!("SiteID" %in% names(msnid))) {
-    stop("No SiteID found. Call map_mod_sites.")
-  }
-  
-  x <- psms(msnid) %>%
-    select(accession, SiteLoc) %>%
-    distinct()
-  
-  x <- fasta %>%
-    as.data.frame() %>%
-    rownames_to_column("accession") %>%
-    mutate(accession = sub("^(.P_\\d+\\.\\d+)?\\s.*", "\\1", accession)) %>%
-    rename(ProtSeq = x) %>%
-    mutate(ProtSeqWidth = nchar(ProtSeq)) %>%
-    inner_join(x, ., by="accession")
-  
-  
-  f <- function(ProtSeq_i, SiteLoc_i) {
-    flankingSequences <- c()
-    for (k in unlist(SiteLoc_i[[1]])) {
-      
-      site_left <- substr(ProtSeq_i, max(k-radius,1), k-1)
-      
-      if (k-radius < 1) {
-        site_left <- paste0(paste(rep("-", 1-(k-radius)),collapse=""), site_left)
-      }
-      
-      site_right <- substr(ProtSeq_i, k+1, min(k+radius,nchar(ProtSeq_i)))
-      
-      if (k+radius > nchar(ProtSeq_i)) {
-        site_right <- site_right <- paste0(site_right, paste(rep("-", k+radius-nchar(ProtSeq_i)),collapse=""))
-      }
-      
-      mod_aa <- tolower(substr(ProtSeq_i, k, k))
-      
-      flank <- paste0(site_left, tolower(mod_aa), site_right)
-      
-      flankingSequences <- c(flankingSequences, flank)
-    }
-    flankingSequences <- paste(flankingSequences, collapse=collapse)
-    return(flankingSequences)
-  }
-  
-  
-  x$flankingSequence <-  map2(x$ProtSeq, x$SiteLoc, f)
-  x$flankingSequence <- as.character(x$flankingSequence)
-  
-  msnid@psms <- psms(msnid) %>%
-    mutate(flankingSequence=NULL) %>%
-    left_join(x, by=c("accession", "SiteLoc")) %>% 
-    data.table()
-  
-  return(msnid)
-}
-
-
-
 #' @export
 #' @rdname motrpac_bic_output
 assess_redundant_protein_matches <- function(msnid, collapse="|") {
@@ -423,67 +353,4 @@ assess_noninferable_proteins <- function(msnid, collapse="|") {
   
   return(msnid)
 }
-
-
-#' @export
-#' @rdname motrpac_bic_output
-compute_protein_coverage <- function(msnid, path_to_FASTA) {
-  
-  fasta <- readAAStringSet(path_to_FASTA)
-  names(fasta) <- sub("^(\\S+)\\s.*", "\\1", names(fasta))
-                                             
-  if(any(duplicated(names(fasta)))) {
-        stop("FASTA entry names are not unique!")
-  }
-  
-  if(length(intersect(msnid$Protein, names(fasta))) == 0) {
-    stop("There is zero overlap in protein IDs and FASTA entry names!")
-  }
-  
-  get_coverage_for_single_protein <- function(protein_i, ids, fasta) {
-    
-    
-    
-    x <- ids %>% 
-      filter(Protein == protein_i) %>%
-      distinct()
-    
-    protAAstring <- fasta[[protein_i]]
-    
-    # main loop
-    irl <- IRangesList()
-    for(i in 1:nrow(x)) {
-      mtch <- regexpr(x$pepSeq[i], protAAstring)
-      start <- as.numeric(mtch)
-      width <- attr(mtch, "match.length")
-      tgt <- IRanges(start=start, width=width, names=x$pepSeq[i])
-      irl[[i]] <- tgt
-    }
-    
-    fullAACoverage <- sum(width(reduce(unlist(irl))))
-    percentAACoverage <- 100*fullAACoverage/length(protAAstring)
-    return(percentAACoverage)
-  }
-  
-  ids <- psms(msnid) %>% 
-    select(Protein, pepSeq) %>%
-    distinct()
-  
-  proteins <- ids %>% 
-    select(Protein) %>%
-    distinct()
-  
-  proteins$percentAACoverage <-  map(proteins$Protein, get_coverage_for_single_protein, ids, fasta)
-  proteins$percentAACoverage <- as.numeric(proteins$percentAACoverage)
-  
-  msnid@psms <- psms(msnid) %>%
-    mutate(percentAACoverage=NULL) %>%
-    left_join(proteins) %>%
-    data.table()
-  
-  return(msnid)
-}
-
-
-
 
