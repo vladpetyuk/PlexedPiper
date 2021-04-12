@@ -193,7 +193,7 @@ make_rii_peptide_ph <- function(msnid, masic_data, fractions, samples, reference
     mutate(Reference = 1)
   
   ## Create crosstab
-  aggregation_level <- c("accession", "Peptide", "SiteID")
+  aggregation_level <- c("accession", "peptide", "SiteID")
   crosstab <- create_crosstab(msnid, 
                               masic_data, 
                               aggregation_level, 
@@ -404,10 +404,10 @@ assess_noninferable_proteins <- function(msnid, collapse="|") {
   
   # assign each accession to its peptide set
   x <- psms(msnid) %>%
-    select(accession, Peptide) %>%
+    select(accession, peptide) %>%
     group_by(accession) %>%
-    arrange(Peptide) %>%
-    summarize(peptide_set = paste(Peptide, collapse=collapse))
+    arrange(peptide) %>%
+    summarize(peptide_set = paste(peptide, collapse=collapse))
   
   # group together accessions with identical peptide sets
   x <- x %>%
