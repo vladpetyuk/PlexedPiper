@@ -52,7 +52,7 @@ best_PTM_location_by_ascore <- function(msnid, ascore){
       rename(peptide = OriginalSequence)
 
    x <- ascore %>%
-      inner_join(., psms(msnid), by=c("spectrumFile", "Scan", "peptide")) %>%
+      inner_join(psms(msnid), ., by=c("spectrumFile", "Scan", "peptide")) %>%
       rename(OriginalPeptide = peptide,
              peptide = BestSequence)
 
