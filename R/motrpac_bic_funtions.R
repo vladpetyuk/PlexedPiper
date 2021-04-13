@@ -60,10 +60,18 @@
 #' @rdname motrpac_bic_output
 make_rii_peptide_gl <- function(msnid, masic_data, fractions, samples, 
                                 references, org_name = "Rattus norvegicus") {
+  
   ## Make RII study design tables
-  samples_rii <- samples %>%
-    mutate(MeasurementName = case_when(is.na(MeasurementName) ~ paste0("Ref", "_", PlexID),
-                                       TRUE ~ MeasurementName))
+  if (any(duplicated(samples$ReporterAlias))) {
+    samples_rii <- samples %>%
+      mutate(MeasurementName = if_else(is.na(MeasurementName),
+                                       paste(ReporterAlias, PlexID, sep="_"),
+                                       ReporterAlias))
+  } else {
+    samples_rii <- samples %>%
+      mutate(MeasurementName = ReporterAlias)
+  }
+  
   references_rii <- references %>%
     mutate(Reference = 1)
   
@@ -78,25 +86,27 @@ make_rii_peptide_gl <- function(msnid, masic_data, fractions, samples,
   crosstab <- as.data.frame(crosstab) %>%
     rownames_to_column("Specie")
   
-  ## Create RII peptide table
-  rii_peptide <- crosstab %>%
+  
+  feature_data <- crosstab %>%
     select(Specie) %>%
     mutate(protein_id = sub("(^.*)@(.*)", "\\1", Specie),
            sequence = sub("(^.*)@(.*)", "\\2", Specie),
-           organism_name = org_name) %>%
-    mutate(REFSEQ = sub("(^.*)\\.\\d+", "\\1", protein_id))
+           organism_name = org_name)
   
   ## Attach Gene symbol and Entrez ID
-  conv <- fetch_conversion_table(org_name, from = "REFSEQ", "SYMBOL")
+  conv <- suppressWarnings(fetch_conversion_table(org_name,
+                                 from = "REFSEQ",
+                                 to = c("SYMBOL", "ENTREZID")))
   
-  conv <- fetch_conversion_table(org_name, from = "REFSEQ", "ENTREZID") %>%
-    inner_join(., conv)
   
-  rii_peptide <- rii_peptide %>%
-    left_join(conv) %>%
+  feature_data <- feature_data %>%
+    mutate(REFSEQ = sub("(^.*)\\.\\d+", "\\1", protein_id)) %>%
+    left_join(conv, by="REFSEQ") %>%
+    select(-REFSEQ) %>%
     rename(gene_symbol = SYMBOL,
-           entrez_id = ENTREZID) %>%
-    select(-REFSEQ)
+           entrez_id = ENTREZID)
+  
+  
   
   ## Additional info from MS/MS
   ids <- psms(msnid) %>%
@@ -108,10 +118,10 @@ make_rii_peptide_gl <- function(msnid, masic_data, fractions, samples,
     summarize(peptide_score = min(MSGFDB_SpecEValue)) %>%
     mutate(is_contaminant = grepl("Contaminant", protein_id))
   
-  rii_peptide <- inner_join(rii_peptide, ids)
+  feature_data <- inner_join(feature_data, ids, by=c("protein_id", "sequence"))
   
   ## Join with crosstab
-  rii_peptide <- inner_join(rii_peptide, crosstab) %>%
+  rii_peptide <- inner_join(feature_data, crosstab, by="Specie") %>%
     select(-Specie)
   
   return(rii_peptide)
@@ -127,30 +137,26 @@ make_results_ratio_gl <- function(msnid, masic_data, fractions, samples,
   crosstab <- create_crosstab(msnid, masic_data, aggregation_level, fractions,
                               samples, references)
   
-  # testing purposes
-  #crosstab <- rbind(crosstab, rnorm(10))
-  #rownames(crosstab)[nrow(crosstab)] <- "Contaminant_TRYP_PIG"
-  
   crosstab <- as.data.frame(crosstab) %>%
     rownames_to_column("protein_id")
   
   ## Create results ratio table
-  results_ratio <- crosstab %>%
+  feature_data <- crosstab %>%
     select(protein_id) %>%
-    mutate(organism_name = org_name,
-           REFSEQ = sub("(^.*)\\.\\d+", "\\1", protein_id))
+    mutate(organism_name = org_name)
   
   ## Attach Gene symbol and Entrez ID
-  conv <- fetch_conversion_table(org_name, from = "REFSEQ", "SYMBOL")
+  conv <- suppressWarnings(fetch_conversion_table(org_name,
+                                 from = "REFSEQ",
+                                 to = c("SYMBOL", "ENTREZID")))
   
-  conv <- fetch_conversion_table(org_name, from = "REFSEQ", "ENTREZID") %>%
-    inner_join(., conv)
   
-  results_ratio <- results_ratio %>%
-    left_join(conv) %>%
+  feature_data <- feature_data %>%
+    mutate(REFSEQ = sub("(^.*)\\.\\d+", "\\1", protein_id)) %>%
+    left_join(conv, by="REFSEQ") %>%
+    select(-REFSEQ) %>%
     rename(gene_symbol = SYMBOL,
-           entrez_id = ENTREZID) %>%
-    select(-REFSEQ)
+           entrez_id = ENTREZID)
     
   
   ## Additional info from MS/MS
@@ -168,10 +174,10 @@ make_results_ratio_gl <- function(msnid, masic_data, fractions, samples,
               num_peptides = n()) %>%
     mutate(is_contaminant = grepl("Contaminant", protein_id))
   
-  results_ratio <- inner_join(results_ratio, ids)
+  feature_data <- inner_join(feature_data, ids, by="protein_id")
   
   ## Join with crosstab
-  results_ratio <- inner_join(results_ratio, crosstab)
+  results_ratio <- inner_join(feature_data, crosstab, by="protein_id")
   
   return(results_ratio)
 }
@@ -182,10 +188,15 @@ make_results_ratio_gl <- function(msnid, masic_data, fractions, samples,
 make_rii_peptide_ph <- function(msnid, masic_data, fractions, samples, references,
                                 org_name = "Rattus norvegicus", sep="_") {
   ## Make RII study design tables
-  samples_rii <- samples %>%
-    mutate(MeasurementName = case_when(is.na(MeasurementName) ~ paste0("Ref", "_", PlexID),
-                                       TRUE ~ MeasurementName))
-  
+  if (any(duplicated(samples$ReporterAlias))) {
+    samples_rii <- samples %>%
+      mutate(MeasurementName = if_else(is.na(MeasurementName),
+                                       paste(ReporterAlias, PlexID, sep="_"),
+                                       ReporterAlias))
+  } else {
+    samples_rii <- samples %>%
+      mutate(MeasurementName = ReporterAlias)
+  }
   
   references_rii <- references %>%
     mutate(Reference = 1)
@@ -203,37 +214,36 @@ make_rii_peptide_ph <- function(msnid, masic_data, fractions, samples, reference
     rownames_to_column("Specie")
   
   ## Create RII peptide table
-  rii_peptide <- crosstab %>%
+  feature_data <- crosstab %>%
     select(Specie) %>%
     mutate(protein_id = sub("(^.*)@(.*)@(.*)", "\\1", Specie),
            sequence = sub("(^.*)@(.*)@(.*)", "\\2", Specie),
            ptm_id = sub("(^.*)@(.*)@(.*)", "\\3", Specie)) %>%
     mutate(ptm_peptide = paste(ptm_id, sequence, sep=sep),
-           organism_name = org_name) %>%
-    mutate(REFSEQ = sub("(^.*)\\.\\d+", "\\1", protein_id))
-  
+           organism_name = org_name)
   
   ## Add Genes + EntrezID
-  conv <- fetch_conversion_table(org_name, from = "REFSEQ", "SYMBOL")
+  conv <- suppressWarnings(fetch_conversion_table(org_name,
+                                 from = "REFSEQ",
+                                 to = c("SYMBOL", "ENTREZID")))
   
-  conv <- fetch_conversion_table(org_name, from = "REFSEQ", "ENTREZID") %>%
-    inner_join(., conv)
-  
-  rii_peptide <- left_join(rii_peptide, conv) %>%
+  feature_data <- feature_data %>%
+    mutate(REFSEQ = sub("(^.*)\\.\\d+", "\\1", protein_id)) %>%
+    left_join(conv, by="REFSEQ") %>%
+    select(-REFSEQ) %>%
     rename(gene_symbol = SYMBOL,
-           entrez_id = ENTREZID) %>%
-    select(-REFSEQ)
+           entrez_id = ENTREZID)
   
   
   ## Additional info from MS/MS
   ids <- psms(msnid) %>%
-    select(accession, peptide, SiteID,
-           flankingSequence, redundantAccessions, MSGFDB_SpecEValue, maxAScore) %>%
-    rename(protein_id = accession,
-           sequence = peptide,
-           ptm_id = SiteID,
-           flanking_sequence = flankingSequence,
-           redundant_ids = redundantAccessions) %>%
+    select(protein_id=accession,
+           sequence=peptide,
+           ptm_id=SiteID,
+           flanking_sequence=sequenceWindow,
+           redundant_ids=redundantAccessions,
+           MSGFDB_SpecEValue,
+           maxAScore) %>%
     group_by(protein_id, sequence, ptm_id, flanking_sequence, redundant_ids) %>%
     summarize(peptide_score = min(MSGFDB_SpecEValue),
               confident_score = max(maxAScore)) %>%
@@ -241,12 +251,13 @@ make_rii_peptide_ph <- function(msnid, masic_data, fractions, samples, reference
                                       confident_score < 17 ~ FALSE),
            is_contaminant = grepl("Contaminant", protein_id))
   
-  rii_peptide <- inner_join(rii_peptide, ids) %>%
+  feature_data <- inner_join(feature_data, ids,
+                             by = c("protein_id", "sequence", "ptm_id")) %>%
     mutate(ptm_id = gsub("-", sep, ptm_id),
            ptm_peptide = gsub("-", sep, ptm_peptide))
   
   ## Join with crosstab
-  rii_peptide <- inner_join(rii_peptide, crosstab) %>%
+  rii_peptide <- inner_join(feature_data, crosstab, by="Specie") %>%
     select(-Specie)
   
   return(rii_peptide)
@@ -261,10 +272,10 @@ make_results_ratio_ph <- function(msnid, masic_data, fractions, samples,
   crosstab <- create_crosstab(msnid, masic_data, aggregation_level, fractions,
                               samples, references)
   crosstab <- as.data.frame(crosstab) %>% 
-    rownames_to_column('Specie')
+    rownames_to_column("Specie")
   
   ## Create RII peptide table
-  results_ratio <- crosstab %>%
+  feature_data <- crosstab %>%
     select(Specie) %>%
     mutate(protein_id = sub("(^.*)@(.*)", "\\1", Specie),
            ptm_id = sub("(^.*)@(.*)", "\\2", Specie),
@@ -272,26 +283,26 @@ make_results_ratio_ph <- function(msnid, masic_data, fractions, samples,
     mutate(REFSEQ = sub("(^.*)\\.\\d+", "\\1", protein_id))
   
   ## Add Genes + EntrezID
-  conv <- fetch_conversion_table(org_name, from = "REFSEQ", "SYMBOL")
+  conv <- suppressWarnings(fetch_conversion_table(org_name,
+                                 from = "REFSEQ",
+                                 to = c("SYMBOL", "ENTREZID")))
   
-  conv <- fetch_conversion_table(org_name, from = "REFSEQ", "ENTREZID") %>%
-    inner_join(., conv)
-  
-  results_ratio <- left_join(results_ratio, conv) %>%
+  feature_data <- feature_data %>%
+    mutate(REFSEQ = sub("(^.*)\\.\\d+", "\\1", protein_id)) %>%
+    left_join(conv, by="REFSEQ") %>%
+    select(-REFSEQ) %>%
     rename(gene_symbol = SYMBOL,
-           entrez_id = ENTREZID) %>%
-    select(-REFSEQ)
+           entrez_id = ENTREZID)
   
   ## Additional info from MS/MS
   ids <- psms(msnid) %>%
-    select(accession, peptide, SiteID,
-           noninferableProteins, flankingSequence,
-           MSGFDB_SpecEValue, maxAScore) %>%
-    rename(protein_id = accession,
+    select(protein_id = accession,
            sequence = peptide,
            ptm_id = SiteID,
            redundant_ids = noninferableProteins,
-           flanking_sequence = flankingSequence) %>%
+           flanking_sequence = sequenceWindow,
+           MSGFDB_SpecEValue,
+           maxAScore) %>%
     # group at peptide level to calculate peptide score, confident score
     group_by(protein_id, sequence, ptm_id, flanking_sequence, redundant_ids) %>%
     summarize(peptide_score = min(MSGFDB_SpecEValue),
@@ -304,11 +315,12 @@ make_results_ratio_ph <- function(msnid, masic_data, fractions, samples,
                                       confident_score < 17 ~ FALSE),
            is_contaminant = grepl("Contaminant", protein_id))
   
-  results_ratio <- inner_join(results_ratio, ids) %>%
+  feature_data <- inner_join(feature_data, ids,
+                              by=c("protein_id", "ptm_id")) %>%
     mutate(ptm_id = gsub("-", sep, ptm_id))
   
   ## Join with crosstab
-  results_ratio <- inner_join(results_ratio, crosstab) %>%
+  results_ratio <- inner_join(feature_data, crosstab, by="Specie") %>%
     select(-Specie)
   
   return(results_ratio)
@@ -318,13 +330,17 @@ make_results_ratio_ph <- function(msnid, masic_data, fractions, samples,
 #' @export
 #' @rdname motrpac_bic_output
 assess_redundant_protein_matches <- function(msnid, collapse="|") {
-  msnid@psms <- psms(msnid) %>%
+  
+  res <- psms(msnid) %>%
     select(accession, peptide) %>%
     distinct() %>%
     group_by(peptide) %>%
-    summarize(redundantAccessions = paste(accession, collapse=collapse)) %>%
-    left_join(psms(msnid), ., by="peptide") %>%
-    data.table()
+    summarize(redundantAccessions = paste(accession, collapse=collapse))
+  
+  res <- left_join(psms(msnid), res, by="peptide")
+  
+  psms(msnid) <- res
+  
   return(msnid)
 }
 
@@ -332,24 +348,23 @@ assess_redundant_protein_matches <- function(msnid, collapse="|") {
 #' @rdname motrpac_bic_output
 assess_noninferable_proteins <- function(msnid, collapse="|") {
   
-  # assign each accession to its peptide set
-  x <- psms(msnid) %>%
+  # assign each accession to its peptide signature
+  res <- psms(msnid) %>%
     select(accession, peptide) %>%
     group_by(accession) %>%
     arrange(peptide) %>%
-    summarize(peptide_set = paste(peptide, collapse=collapse))
+    summarize(peptideSignature = paste(peptide, collapse=collapse))
   
-  # group together accessions with identical peptide sets
-  x <- x %>%
-    group_by(peptide_set) %>%
+  # group together accessions with identical peptide signature
+  res <- res %>%
+    group_by(peptideSignature) %>%
     summarize(noninferableProteins = paste(accession, collapse=collapse)) %>%
-    left_join(x,by="peptide_set") %>%
-    select(-peptide_set)
+    left_join(res, by="peptideSignature") %>%
+    select(-peptideSignature)
     
-  msnid@psms <- psms(msnid) %>%
-    mutate(noninferableProteins=NULL) %>%
-    left_join(x, by="accession") %>%
-    data.table()
+  res <- left_join(psms(msnid), res, by="accession")
+  
+  psms(msnid) <- res
   
   return(msnid)
 }
