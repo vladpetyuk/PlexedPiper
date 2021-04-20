@@ -23,25 +23,28 @@ read_masic_data_from_DMS <- function(data_pkg, interference_score=FALSE){
    jobRecords <- jobRecords[grepl("MASIC", jobRecords$Tool),]
 
    masicData <- get_results_for_multiple_jobs.dt(jobRecords)
+   gc()
 
    if (interference_score) {
      results = llply( jobRecords[["Folder"]],
                       get_results_for_single_job.dt,
                       fileNamePttrn="_SICstats.txt",
                       .progress = "text")
-     results.dt <- rbindlist(results)
-     masicStats <- as.data.frame(results.dt)
+     gc()
+     masicStats <- as.data.frame(rbindlist(results))
+     rm(results)
      masicStats <- masicStats[,-2] # Remove redundant Dataset column
      masicData  <- masicData[,-2] # Remove redundant Dataset column
 
      # Combine masicData and masicStats
-     x <- select(masicData, Dataset, ScanNumber,
+     masicData <- select(masicData, Dataset, ScanNumber,
                  starts_with("Ion"), -contains("Resolution"))
-     y <- select(masicStats, Dataset, ScanNumber = FragScanNumber,
+     masicStats <- select(masicStats, Dataset, ScanNumber = FragScanNumber,
                  contains('InterferenceScore'))
-     z <- inner_join(x, y)
+     masicData <- inner_join(masicData, masicStats)
+     rm(masicStats)
 
-     return(z)
+     return(masicData)
    }
    masicData <- masicData[,-2]
    masicData <- select(masicData, Dataset, ScanNumber,
