@@ -11,6 +11,9 @@
 read_masic_data_from_DMS <- function(data_pkg, interference_score=FALSE){
    # library("plyr")
    # library("data.table")
+   
+   # call gc upon exiting this function. All manners of exiting (return, error) count
+   on.exit(gc(), add = TRUE)
 
    # Fetch job records for data package(s)
    if(length(data_pkg) > 1){
@@ -26,13 +29,14 @@ read_masic_data_from_DMS <- function(data_pkg, interference_score=FALSE){
    gc()
 
    if (interference_score) {
-     results = llply( jobRecords[["Folder"]],
+     masicStats = llply( jobRecords[["Folder"]],
                       get_results_for_single_job.dt,
                       fileNamePttrn="_SICstats.txt",
-                      .progress = "text")
+                      .progress = "text") %>%
+        rbindlist(.) %>% as.data.frame(.)
+     
      gc()
-     masicStats <- as.data.frame(rbindlist(results))
-     rm(results)
+     
      masicStats <- masicStats[,-2] # Remove redundant Dataset column
      masicData  <- masicData[,-2] # Remove redundant Dataset column
 
