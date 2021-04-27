@@ -51,13 +51,18 @@ read_study_design <- function(path_to_study_design) {
   samples <- readr::read_tsv(pathToFile,
                              col_types=readr::cols(.default = "c"),
                              progress=FALSE)
-  if (!setequal(colnames(samples), c("PlexID",
-                                     "QuantBlock",
-                                     "ReporterAlias",
-                                     "ReporterName",
-                                     "MeasurementName"))) {
-    stop("There are incorrect column names or missing columns in the 'samples'
-         study design table.")
+  required_samples_columns <- c("PlexID",
+                                "QuantBlock",
+                                "ReporterAlias",
+                                "ReporterName",
+                                "MeasurementName")
+  if (!all(required_samples_columns %in% colnames(samples))) {
+    message("\nRequired column(s) not found in the 'samples.txt' file: ",
+            paste(required_samples_columns[!(required_samples_columns %in% colnames(samples))], collapse = ", "))
+    stop("Incorrect column names or missing columns in the 'samples' study design table.")
+  }else{
+    # Ignore any extra column available
+    samples <- subset(samples, select = required_samples_columns)
   }
   
   ## fetch fractions.txt
@@ -68,14 +73,18 @@ read_study_design <- function(path_to_study_design) {
     stop("'fractions.txt' not found.")
   }
   
-  
   fractions <- readr::read_tsv(pathToFile,
                                col_types=readr::cols(.default = "c"),
                                progress=FALSE)
-  if (!setequal(colnames(fractions), c("PlexID",
-                                       "Dataset"))) {
-    stop("There are incorrect column names or missing columns in the 'fractions'
-         study design table.")
+  required_fractions_columns <- c("PlexID",
+                                  "Dataset")
+  if (!all(required_fractions_columns %in% colnames(fractions))) {
+    message("\nRequired column(s) not found in the 'fractions.txt' file: ", 
+            paste(required_fractions_columns[!(required_fractions_columns %in% colnames(fractions))], collapse = ", "))
+    stop("Incorrect column names or missing columns in the 'fractions' table.")
+  }else{
+    # Ignore any extra column available
+    fractions <- subset(fractions, select = required_fractions_columns)
   }
   
   ## fetch references.txt
@@ -86,11 +95,16 @@ read_study_design <- function(path_to_study_design) {
     references <- readr::read_tsv(pathToFile,
                                   col_types=readr::cols(.default = "c"),
                                   progress=FALSE)
-    if (!setequal(colnames(references), c("PlexID",
-                                          "QuantBlock",
-                                          "Reference"))) {
-      stop("There are incorrect column names or missing columns in the 'references'
-           study design table.")
+    required_references_columns <- c("PlexID",
+                                     "QuantBlock",
+                                     "Reference")
+    if (!all(required_references_columns %in% colnames(references))) {
+      message("\nRequired column(s) not found in the 'references.txt' file: ",
+              paste(required_references_columns[!(required_references_columns %in% colnames(references))], collapse = ", "))
+      stop("Incorrect column names or missing columns in the 'references' table.")
+    }else{
+      # Ignore any extra column available
+      references <- subset(references, select = required_references_columns)
     }
   } else {
     warning("'references.txt' not found. It will be made automatically from `samples.txt`")
