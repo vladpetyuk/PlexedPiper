@@ -1,7 +1,7 @@
 Package: PlexedPiper
 Type: Package
 Title: Pipeline for isobaric quantification.
-Version: 0.1.3
+Version: 0.1.8
 Author: Vladislav Petyuk vladislav.petyuk@pnnl.gov
 Maintainer: Vladislav Petyuk <vladislav.petyuk@pnnl.gov>
 Description: More about what it does (maybe more than one line)
@@ -21,14 +21,22 @@ Imports:
    data.table,
    dplyr,
    plyr,
+   IRanges,
+   MSnbase,
    odbc,
+   purrr,
+   tibble,
    tidyr,
    tidyselect,
    tools,
    knitr,
    rmarkdown,
    readr,
-   Rcpp (<= 1.0.2)
+   Rcpp,
+   IRanges,
+   MSnbase,
+   purrr,
+   tibble
 Remotes: github::vladpetyuk/PlexedPiperTestData, github::vladpetyuk/MSnID
 biocViews:
 VignetteBuilder: knitr

@@ -4,7 +4,7 @@
 \alias{read_msgf_data}
 \title{Reading MSGF Results. Generic.}
 \usage{
-read_msgf_data(path_to_MSGF_results, suffix = "_syn.txt")
+read_msgf_data(path_to_MSGF_results, suffix = NULL)
 }
 \arguments{
 \item{path_to_MSGF_results}{(path string) to directory with MSGF results for all datasets}

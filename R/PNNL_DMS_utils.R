@@ -563,7 +563,7 @@ get_study_design_by_dataset_package <- function(dataPkgNumber) {
       stop("Could not find 'samples.txt' file in DMS Data Package folder.")
    }
 
-   samples <- readr::read_tsv(pathToFile, col_types=readr::cols(), progress=FALSE)
+   samples <- readr::read_tsv(pathToFile, col_types=readr::cols(.default = "c"), progress=FALSE)
    if (!setequal(colnames(samples), c("PlexID",
                                       "QuantBlock",
                                       "ReporterAlias",
@@ -572,7 +572,7 @@ get_study_design_by_dataset_package <- function(dataPkgNumber) {
       stop("There are incorrect column names or missing columns in the 'samples'
          study design table.")
    }
-
+   
    ## fetch fractions.txt
    pathToFile <- list.files(path=local_folder,
                             pattern="^fractions.txt$",
@@ -582,7 +582,7 @@ get_study_design_by_dataset_package <- function(dataPkgNumber) {
    }
 
 
-   fractions <- readr::read_tsv(pathToFile, col_types=readr::cols(), progress=FALSE)
+   fractions <- readr::read_tsv(pathToFile, col_types=readr::cols(.default = "c"), progress=FALSE)
    if (!setequal(colnames(fractions), c("PlexID",
                                         "Dataset"))) {
       stop("There are incorrect column names or missing columns in the 'fractions'
@@ -597,15 +597,13 @@ get_study_design_by_dataset_package <- function(dataPkgNumber) {
       stop("Could not find 'references.txt' file in DMS Data Package folder.")
    }
 
-   references <- readr::read_tsv(pathToFile, col_types=readr::cols(), progress=FALSE)
+   references <- readr::read_tsv(pathToFile, col_types=readr::cols(.default = "c"), progress=FALSE)
    if (!setequal(colnames(references), c("PlexID",
                                          "QuantBlock",
                                          "Reference"))) {
       stop("There are incorrect column names or missing columns in the 'references'
          study design table.")
    }
-
-
 
    if(.Platform$OS.type == "unix"){
       umount_cmd <- sprintf("umount %s", local_folder)

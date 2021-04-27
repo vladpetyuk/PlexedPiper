@@ -177,7 +177,7 @@ x <- quant_cross_tab %>%
   rownames_to_column("ID") %>%
   mutate(RefSeq =  sub("(.*)@(.\\..*\\..)","\\1",ID),
          Peptide = sub("(.*)@(.\\..*\\..)","\\2",ID)) %>%
-  select(-ID) %>%
+  dplyr::select(-ID) %>%
   inner_join(x_ascore) %>%
   mutate(ConfidentSite = maxAScore > 17) %>%
   mutate(Peptide = gsub(".\\.(.*)\\..","\\1",Peptide, perl=T)) %>%
@@ -188,8 +188,8 @@ x <- quant_cross_tab %>%
                 peptide = Peptide,
                 ascore = maxAScore,
                 confidence = ConfidentSite) %>%
-  select(-c(accession, RefSeq)) %>%
-  select(ptm_peptide, ptm_id, peptide, ascore, confidence, everything())
+  dplyr::select(-c(accession, RefSeq)) %>%
+  dplyr::select(ptm_peptide, ptm_id, peptide, ascore, confidence, everything())
 head(x)
 ```
 
