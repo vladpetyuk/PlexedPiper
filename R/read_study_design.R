@@ -52,17 +52,13 @@ read_study_design <- function(path_to_study_design) {
                              col_types=readr::cols(.default = "c"),
                              progress=FALSE)
   required_samples_columns <- c("PlexID",
-                                "QuantBlock",
-                                "ReporterAlias",
                                 "ReporterName",
+                                "ReporterAlias",
                                 "MeasurementName")
   if (!all(required_samples_columns %in% colnames(samples))) {
     message("\nRequired column(s) not found in the 'samples.txt' file: ",
             paste(required_samples_columns[!(required_samples_columns %in% colnames(samples))], collapse = ", "))
     stop("Incorrect column names or missing columns in the 'samples' study design table.")
-  }else{
-    # Ignore any extra column available
-    samples <- subset(samples, select = required_samples_columns)
   }
   
   ## fetch fractions.txt
@@ -82,9 +78,6 @@ read_study_design <- function(path_to_study_design) {
     message("\nRequired column(s) not found in the 'fractions.txt' file: ", 
             paste(required_fractions_columns[!(required_fractions_columns %in% colnames(fractions))], collapse = ", "))
     stop("Incorrect column names or missing columns in the 'fractions' table.")
-  }else{
-    # Ignore any extra column available
-    fractions <- subset(fractions, select = required_fractions_columns)
   }
   
   ## fetch references.txt
@@ -96,15 +89,11 @@ read_study_design <- function(path_to_study_design) {
                                   col_types=readr::cols(.default = "c"),
                                   progress=FALSE)
     required_references_columns <- c("PlexID",
-                                     "QuantBlock",
                                      "Reference")
     if (!all(required_references_columns %in% colnames(references))) {
       message("\nRequired column(s) not found in the 'references.txt' file: ",
               paste(required_references_columns[!(required_references_columns %in% colnames(references))], collapse = ", "))
       stop("Incorrect column names or missing columns in the 'references' table.")
-    }else{
-      # Ignore any extra column available
-      references <- subset(references, select = required_references_columns)
     }
   } else {
     warning("'references.txt' not found. It will be made automatically from `samples.txt`")
