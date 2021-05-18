@@ -3,7 +3,7 @@
 #' @param data_pkg (Numeric or Character vector) containing Data Package ID(s) located in DMS
 #' @param interference_score (logical) read interference score. Default is FALSE.
 #' @return (data.frame) with reporter ion intensities and other metrics
-#' @importFrom dplyr select
+#' @importFrom dplyr select %>%
 #' @importFrom plyr llply
 #' @importFrom data.table rbindlist
 #' @export read_masic_data_from_DMS
