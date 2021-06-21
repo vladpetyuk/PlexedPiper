@@ -1,3 +1,7 @@
+**The package has been moved to [PNNL-Comp-Mass-Spec](https://github.com/PNNL-Comp-Mass-Spec) as [PlexedPiper](https://github.com/PNNL-Comp-Mass-Spec/PlexedPiper). This repository may or may not be maintained.**
+======
+
+
 # PlexedPiper
 
 R package used at PNNL for processing isobaric labeling (e.g. TMT) proteomics
