@@ -53,7 +53,7 @@ create_crosstab <- function(msnid,
                             aggregation_level,
                             fractions,
                             samples,
-                            references){
+                            references = NULL){
 
    # merges MS/MS IDs with reporter intensities
    quant_data <- link_msms_and_reporter_intensities(msnid,
@@ -121,6 +121,12 @@ converting_to_relative_to_reference <- function(quant_data,
                                                 samples,
                                                 references)
 {
+
+   if (is.null(references)) {
+      references <- filter(samples, ReporterAlias == "ref")
+      references <- dplyr::rename(references, Reference = ReporterAlias)
+      references <- dplyr::select(references, PlexID, QuantBlock, Reference)
+   }
 
    # transforming from wide to long form
    quant_data <- melt(quant_data,
